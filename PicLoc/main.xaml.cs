@@ -148,7 +148,7 @@ namespace PicLoc
             return strHashBase64;
         }
 
-        public async void login(String username, String password)
+        public async void login(String username, String password, bool tokenUsed = false)
         {
 
             var vault = new PasswordVault();
@@ -169,7 +169,10 @@ namespace PicLoc
 
             }
 
-            password = sha512(password);
+            if (!tokenUsed)
+            {
+                password = sha512(password);
+            }
 
             var values = new Dictionary<string, string>
             {
@@ -179,6 +182,8 @@ namespace PicLoc
             };
 
             var client = new System.Net.Http.HttpClient();
+
+            client.DefaultRequestHeaders.ExpectContinue = false;
 
             var content = new FormUrlEncodedContent(values);
 
@@ -207,9 +212,15 @@ namespace PicLoc
 
             if (array[0]["status"].ToString() == "True")
             {
+
+                var vault1 = new PasswordVault();
+                var cred1 = new PasswordCredential("PicLoc_accounts", username, array[0]["token"].ToString());
+                vault1.Add(cred1);
+                Debug.WriteLine("Saved creds");
+
                 snapscreen.json = responseString;
                 Frame.Navigate(typeof(snapscreen));
-                static_pass = password;
+                static_pass = array[0]["token"].ToString();
                 static_user = username;
                 /*
                 var dlg = new MessageDialog("Good login: " + responseString);
@@ -228,31 +239,7 @@ namespace PicLoc
 
         private void username_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (username.Text == "")
-            {
-                return;
-            }
-
-            var vault = new PasswordVault();
-            try
-            {
-                PasswordCredential cred = vault.Retrieve("PicLoc_accounts", username.Text);
-                if (cred != null)
-                {
-                    // we have a device id
-                    password.Password = cred.Password;
-                    Debug.WriteLine("Username: " + cred.UserName + " | Password: " + cred.Password);
-                    return;
-                }
-            }
-            catch (COMException ex)
-            {
-                Debug.WriteLine("Exception handled");
-                /*if (ex.HResult != ElementNotFound)
-                {
-                    throw;
-                }*/
-            }
+            
         }
 
         private void button_signup_Click(object sender, RoutedEventArgs e)
@@ -262,11 +249,41 @@ namespace PicLoc
 
         private void button_login_Click(object sender, RoutedEventArgs e)
         {
-            login(username.Text, password.Password);
-            var vault = new PasswordVault();
-            var cred = new PasswordCredential("PicLoc_accounts", username.Text, password.Password);
-            vault.Add(cred);
-            Debug.WriteLine("Saved creds");
+            if (password.Password == "")
+            {
+
+                var vault = new PasswordVault();
+                try
+                {
+                    PasswordCredential cred = vault.Retrieve("PicLoc_accounts", username.Text);
+                    if (cred != null)
+                    {
+                        // we have a token stored
+                        password.Password = cred.Password;
+                        Debug.WriteLine("Username: " + cred.UserName + " | Password: " + cred.Password);
+                        login(username.Text, cred.Password, true); // try to login with token
+                        return;
+                    }
+                }
+                catch (COMException ex)
+                {
+                    Debug.WriteLine("token -- Exception handled");
+                    /*if (ex.HResult != ElementNotFound)
+                    {
+                        throw;
+                    }*/
+                }
+            } else
+            {
+                if (username.Text == "" && password.Password == "")
+                {
+                    Debug.WriteLine("No username or password");
+                } else
+                {
+                    // loggin in with username + pass
+                    login(username.Text, password.Password);
+                }
+            }
         }
     }
 }
