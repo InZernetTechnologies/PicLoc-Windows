@@ -32,6 +32,11 @@
                     <ScrollViewer Name="scrollview" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
                         <StackPanel x:Name="stackpanel" VerticalAlignment="Stretch" Orientation="Vertical" />
                     </ScrollViewer>
+                    <ProgressBar Name="snap_progress" HorizontalAlignment="Stretch" Height="5" VerticalAlignment="Bottom" Value="100">
+                        <ProgressBar.Background>
+                            <SolidColorBrush Color="#33000000" Opacity="0.5"/>
+                        </ProgressBar.Background>
+                    </ProgressBar>
                 </Grid>
             </PivotItem>
             <PivotItem Margin="0,-50,0,0">
