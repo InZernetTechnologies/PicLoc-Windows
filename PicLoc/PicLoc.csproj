@@ -101,13 +101,12 @@
     <Compile Include="main.xaml.cs">
       <DependentUpon>main.xaml</DependentUpon>
     </Compile>
-    <Compile Include="MemoryRandomAccessStream.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="settings.cs" />
+    <Compile Include="SlowInputStream.cs" />
     <Compile Include="snapscreen.xaml.cs">
       <DependentUpon>snapscreen.xaml</DependentUpon>
     </Compile>
-    <Compile Include="TypeConverter.cs" />
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest">
