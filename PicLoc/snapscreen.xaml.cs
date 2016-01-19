@@ -12,14 +12,14 @@ using Windows.Security.Credentials;
 using Windows.Storage.Streams;
 using Windows.Security.Cryptography;
 using Windows.Security.Cryptography.Core;
-using System.Collections.Generic;
-using System.Net.Http;
 using Windows.UI.Popups;
 using System.IO;
-using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Storage;
-using Windows.UI.Xaml.Data;
 using System.Threading.Tasks;
+using System.Globalization;
+using Windows.Web.Http;
+using System.Threading;
+using System.Collections.Generic;
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=234238
 
 namespace PicLoc
@@ -30,9 +30,18 @@ namespace PicLoc
         public static string json;
         private StorageFolder image_folder;
         private bool isTimerRunning;
+        private Grid currentlyViewing;
+
+        // Testing
+        private HttpClient httpClient;
+        private CancellationTokenSource cts;
 
         public snapscreen()
         {
+
+            httpClient = new HttpClient();
+            cts = new CancellationTokenSource();
+
             this.InitializeComponent();
 
             // hide status bar
@@ -141,37 +150,71 @@ namespace PicLoc
             }
         }
 
-        public string sha512(String password)
+        private void ProgressHandler(HttpProgress progress)
         {
-            // Convert the message string to binary data.
-            IBuffer buffUtf8Msg = CryptographicBuffer.ConvertStringToBinary(password, BinaryStringEncoding.Utf8);
+            //Debug.WriteLine("Stage: " + progress.Stage.ToString());
+            //Debug.WriteLine("Retires: " + progress.Retries.ToString(CultureInfo.InvariantCulture));
+            //Debug.WriteLine("Bytes Sent: " + progress.BytesSent.ToString(CultureInfo.InvariantCulture));
+            //Debug.WriteLine("Bytes Received: " + progress.BytesReceived.ToString(CultureInfo.InvariantCulture));
 
-            // Create a HashAlgorithmProvider object.
-            HashAlgorithmProvider objAlgProv = HashAlgorithmProvider.OpenAlgorithm(HashAlgorithmNames.Sha512);
-
-            // Demonstrate how to retrieve the name of the hashing algorithm.
-            String strAlgNameUsed = objAlgProv.AlgorithmName;
-
-            // Hash the message.
-            IBuffer buffHash = objAlgProv.HashData(buffUtf8Msg);
-
-            // Verify that the hash length equals the length specified for the algorithm.
-            if (buffHash.Length != objAlgProv.HashLength)
+            ulong totalBytesToSend = 0;
+            if (progress.TotalBytesToSend.HasValue)
             {
-                throw new Exception("There was an error creating the hash");
+                totalBytesToSend = progress.TotalBytesToSend.Value;
+                //Debug.WriteLine("Total Bytes To Send: " + totalBytesToSend.ToString(CultureInfo.InvariantCulture));
+            }
+            else
+            {
+                //Debug.WriteLine("Total Bytes To Send: " + "unknown");
             }
 
-            // Convert the hash to a string (for display).
-            String strHashBase64 = CryptographicBuffer.EncodeToBase64String(buffHash);
+            ulong totalBytesToReceive = 0;
+            if (progress.TotalBytesToReceive.HasValue)
+            {
+                totalBytesToReceive = progress.TotalBytesToReceive.Value;
+                //Debug.WriteLine("Total Bytes To Receive: " + totalBytesToReceive.ToString(CultureInfo.InvariantCulture));
+            }
+            else
+            {
+                //Debug.WriteLine("Total Bytes To Receive: " + "unknown");
+            }
 
-            // Return the encoded string
-            return strHashBase64;
+            double requestProgress = 0;
+            if (progress.Stage == HttpProgressStage.SendingContent && totalBytesToSend > 0)
+            {
+                requestProgress = progress.BytesSent * 50 / totalBytesToSend;
+            }
+            else if (progress.Stage == HttpProgressStage.ReceivingContent)
+            {
+                // Start with 50 percent, request content was already sent.
+                requestProgress += 50;
+
+                if (totalBytesToReceive > 0)
+                {
+                    requestProgress += progress.BytesReceived * 50 / totalBytesToReceive;
+                }
+            }
+            else
+            {
+                return;
+            }
+            //Debug.WriteLine("Progress: " + requestProgress);
+            snap_progress.Value = requestProgress;
         }
-
-
 
         private async void snap_tapped(object sender, TappedRoutedEventArgs e)
         {
+            if (snap_progress.Value != 100)
+            {
+                Debug.WriteLine("Not finished downloading snap");
+                return;
+            }
+            
+            //((TextBlock)sender).IsTapEnabled = false;
+
+            HttpResponseMessage response = null;
+            String responseString = null;
+
             Debug.WriteLine("Get snap: " + ((TextBlock)sender).Name);
             var vault = new PasswordVault();
             PasswordCredential cred;
@@ -191,7 +234,49 @@ namespace PicLoc
 
             }
 
-            var values = new Dictionary<string, string>
+            snap_progress.Value = 0;
+
+            try
+            {
+                const uint streamLength = 100000;
+
+                HttpMultipartFormDataContent multipartContent = new HttpMultipartFormDataContent();
+
+                HttpStreamContent streamContent = new HttpStreamContent(new SlowInputStream(streamLength));
+
+
+                var values = new Dictionary<string, string>
+            {
+                { "username", main.static_user },
+                { "password", main.static_pass },
+                { "device_id", deviceid.ToString() },
+                { "snap_id", ((TextBlock)sender).Name }
+            };
+
+                HttpFormUrlEncodedContent formContent = new HttpFormUrlEncodedContent(values);
+                streamContent.Headers.ContentLength = streamLength;
+
+                multipartContent.Add(formContent);
+                multipartContent.Add(streamContent);
+
+                IProgress<HttpProgress> progress = new Progress<HttpProgress>(ProgressHandler);
+                response = await httpClient.PostAsync(new Uri(settings.url + "/get_snap.php"), formContent).AsTask(cts.Token, progress);
+                responseString = await response.Content.ReadAsStringAsync();
+                Debug.WriteLine("******* DONE *******");
+            }
+            catch (TaskCanceledException)
+            {
+                Debug.WriteLine("Cancelled");
+            } catch (Exception ex)
+            {
+                Debug.WriteLine("Error: " + ex.StackTrace);
+            } finally
+            {
+                snap_progress.Value = 100;
+                Debug.WriteLine("* COMPLETED *");
+            }
+
+            /*var values = new Dictionary<string, string>
             {
                 { "username", main.static_user },
                 { "password", main.static_pass },
@@ -208,6 +293,11 @@ namespace PicLoc
             var response = await client.PostAsync(settings.url + "/get_snap.php", content);
             var responseString = await response.Content.ReadAsStringAsync();
             var responseBytes = await response.Content.ReadAsByteArrayAsync();
+
+            Old login code, obsolete.
+
+            */
+
             JArray array = null;
 
             if (response.Content.Headers.ContentType.ToString() == "image/png")
@@ -219,7 +309,7 @@ namespace PicLoc
                 try
                 {
                     StorageFile file = await image_folder.CreateFileAsync(((TextBlock)sender).Name + ".jpg", CreationCollisionOption.ReplaceExisting);
-                    await FileIO.WriteBytesAsync(file, responseBytes);
+                    await FileIO.WriteBufferAsync(file, await response.Content.ReadAsBufferAsync());
                 }
                 catch (System.Exception)
                 {
@@ -245,10 +335,13 @@ namespace PicLoc
             else
             {
 
+                Debug.WriteLine("snap error: " + responseString);
+
                 try
                 {
-
+                    Debug.WriteLine("trying to parse message");
                     array = JArray.Parse(responseString);
+                    Debug.WriteLine("parsing success");
                 }
                 catch (Exception ex)
                 {
@@ -257,7 +350,18 @@ namespace PicLoc
                     var op1 = await dlg1.ShowAsync();
                     return;
                 }
-                var dlg = new MessageDialog(array[0]["message"].ToString());
+
+                String message;
+
+                try
+                {
+                    message = array[0]["message"].ToString();
+                } catch (Exception ex)
+                {
+                    message = "No error message";
+                }
+
+                var dlg = new MessageDialog(message);
                 dlg.Title = "Something went wrong: " + array[0]["code"];
                 dlg.Commands.Add(new UICommand("Dismiss", null, "1"));
                 var op = await dlg.ShowAsync();
