@@ -20,6 +20,7 @@ using System.Globalization;
 using Windows.Web.Http;
 using System.Threading;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=234238
 
 namespace PicLoc
@@ -29,12 +30,12 @@ namespace PicLoc
 
         public static string json;
         private StorageFolder image_folder;
-        private bool isTimerRunning;
-        private Grid currentlyViewing;
+        DispatcherTimer dt;
 
         // Testing
         private HttpClient httpClient;
         private CancellationTokenSource cts;
+
 
         public snapscreen()
         {
@@ -53,7 +54,8 @@ namespace PicLoc
 
             // <!-- hide status bar
             createImageFolder();
-            set();
+
+            set(); //rename set function
 
         }
 
@@ -82,17 +84,31 @@ namespace PicLoc
 
         private void set()
         {
-            JArray array = JArray.Parse(json);
+            JObject array = JObject.Parse(json);
 
-            JArray items = (JArray)array[0]["snaps"];
+            JObject items = array["snaps"].Value<JObject>();
 
             Debug.WriteLine("Snaps: " + items.Count);
 
-            Image img = null;
-            TextBlock username = null;
-            TextBlock txt = null;
+            ObservableCollection<Snap> snapList = new ObservableCollection<Snap>();
 
-            for (int i = 0; i < items.Count; i++)
+            foreach (var x in items)
+            {
+
+                Snap tmp_snap = new Snap() { id = int.Parse(x.Key), from = x.Value.SelectToken("user_from").ToString(), status = x.Value.SelectToken("status").ToString(), ImageSource = new BitmapImage(new Uri(this.BaseUri, "/Assets/snapscreen/Images/" + x.Value.SelectToken("status").ToString() + ".png")), time = int.Parse(x.Value.SelectToken("time").ToString()) };
+
+                snapList.Add(tmp_snap);
+
+                //Debug.WriteLine("Key: " + x.Key); // A.K.A the ID of the snap
+                //Debug.WriteLine("Value: " + x.Value.SelectToken("user_from")); // Get value from snap
+            }
+
+
+            listView.ItemsSource = snapList;
+
+            // OLD CODE //
+
+            /*for (int i = 0; i < items.Count; i++)
             {
                 Debug.WriteLine("SnapID: " + items[i]["id"]);
 
@@ -147,7 +163,9 @@ namespace PicLoc
 
                 stackpanel.Children.Add(snap_grid_item);
 
-            }
+            }*/
+
+            // !!! OLD CODE !!! ///
         }
 
         private void ProgressHandler(HttpProgress progress)
@@ -202,8 +220,13 @@ namespace PicLoc
             snap_progress.Value = requestProgress;
         }
 
-        private async void snap_tapped(object sender, TappedRoutedEventArgs e)
+        private async void snap_tapped(ListView lv)
         {
+
+            Snap current_snap = (Snap)lv.SelectedItem;
+
+            listView.SelectedIndex = -1;
+
             if (snap_progress.Value != 100)
             {
                 Debug.WriteLine("Not finished downloading snap");
@@ -215,7 +238,7 @@ namespace PicLoc
             HttpResponseMessage response = null;
             String responseString = null;
 
-            Debug.WriteLine("Get snap: " + ((TextBlock)sender).Name);
+            Debug.WriteLine("Get snap: " + current_snap.id);
             var vault = new PasswordVault();
             PasswordCredential cred;
             String deviceid = null;
@@ -250,7 +273,7 @@ namespace PicLoc
                 { "username", main.static_user },
                 { "password", main.static_pass },
                 { "device_id", deviceid.ToString() },
-                { "snap_id", ((TextBlock)sender).Name }
+                { "snap_id", current_snap.id.ToString() }
             };
 
                 HttpFormUrlEncodedContent formContent = new HttpFormUrlEncodedContent(values);
@@ -260,7 +283,7 @@ namespace PicLoc
                 multipartContent.Add(streamContent);
 
                 IProgress<HttpProgress> progress = new Progress<HttpProgress>(ProgressHandler);
-                response = await httpClient.PostAsync(new Uri(settings.url + "/get_snap.php"), formContent).AsTask(cts.Token, progress);
+                response = await httpClient.PostAsync(new Uri(settings.API + "/get_snap/"), formContent).AsTask(cts.Token, progress);
                 responseString = await response.Content.ReadAsStringAsync();
                 Debug.WriteLine("******* DONE *******");
             }
@@ -275,6 +298,8 @@ namespace PicLoc
                 snap_progress.Value = 100;
                 Debug.WriteLine("* COMPLETED *");
             }
+
+            /// !!! OLD CODE !!! ///
 
             /*var values = new Dictionary<string, string>
             {
@@ -308,7 +333,7 @@ namespace PicLoc
 
                 try
                 {
-                    StorageFile file = await image_folder.CreateFileAsync(((TextBlock)sender).Name + ".jpg", CreationCollisionOption.ReplaceExisting);
+                    StorageFile file = await image_folder.CreateFileAsync(current_snap.id + ".jpg", CreationCollisionOption.ReplaceExisting);
                     await FileIO.WriteBufferAsync(file, await response.Content.ReadAsBufferAsync());
                 }
                 catch (System.Exception)
@@ -320,14 +345,19 @@ namespace PicLoc
                 snap_image.Visibility = Visibility.Visible;
                 snap_num.Visibility = Visibility.Visible;
                 snap_ellipse.Visibility = Visibility.Visible;
-                scrollview.Visibility = Visibility.Collapsed;
+                listView.Visibility = Visibility.Collapsed;
 
-                snap_image.Source = new BitmapImage(new Uri("ms-appdata:///local/images/" + ((TextBlock)sender).Name + ".jpg", UriKind.Absolute));
+                snap_image.Source = new BitmapImage(new Uri("ms-appdata:///local/images/" + current_snap.id + ".jpg", UriKind.Absolute));
 
                 // start timer (TODO: make it get the snap length
 
-                StartTimer(new TimeSpan(0, 0, 1), new TimeSpan(0, 0, 10));
-                snap_num.Text = "10";
+
+                dt = new DispatcherTimer();
+                dt.Tick += dt_tick;
+                dt.Interval = new TimeSpan(0, 0, 1);
+                dt.Start();
+
+                snap_num.Text = current_snap.time.ToString();
                 // delete snap
 
 
@@ -369,31 +399,12 @@ namespace PicLoc
             }
         }
 
-        private async void StartTimer(TimeSpan MyInterval, TimeSpan TotalTime)
-        {
-            isTimerRunning = true;
-            int i = 0;
-            double TotalSeconds = TotalTime.TotalSeconds;
-            double MyIntervalSeconds = MyInterval.TotalSeconds;
-            while (this.isTimerRunning)
-            {
-                DoSomething();
-                await Task.Delay(MyInterval);
-                i = i++;
-                if (TotalSeconds <= i * MyIntervalSeconds)
-                {
-                    isTimerRunning = false;
-                    Debug.WriteLine("DONE");
-                }
-
-            }
-        }
-        private void DoSomething()
+        private void dt_tick(object sender, object e)
         {
             snap_num.Text = (int.Parse(snap_num.Text) - 1).ToString();
             if (int.Parse(snap_num.Text) == -1)
             {
-                isTimerRunning = false;
+                dt.Stop();
                 restSnapView();
             }
         }
@@ -405,18 +416,36 @@ namespace PicLoc
 
         private void restSnapView()
         {
-            isTimerRunning = false;
-            snap_image.Source = null;
+            dt.Stop();
             snap_image.Visibility = Visibility.Collapsed;
             snap_num.Visibility = Visibility.Collapsed;
             snap_ellipse.Visibility = Visibility.Collapsed;
-            scrollview.Visibility = Visibility.Visible;
+            listView.Visibility = Visibility.Visible;
         }
 
         private void snap_image_Tapped(object sender, TappedRoutedEventArgs e)
+         { 
+             Debug.WriteLine("tapped"); 
+             restSnapView(); 
+         }
+
+
+    private void listView_Tapped(object sender, TappedRoutedEventArgs e)
         {
-            Debug.WriteLine("tapped");
-            restSnapView();
+            Debug.WriteLine(listView.SelectedIndex);
+            Debug.WriteLine("Snap ID Selected: " + ((Snap)listView.SelectedItem).id);
+            Debug.WriteLine("Object Type: " + sender.GetType());
+            snap_tapped((ListView)sender);
         }
     }
+
+    class Snap
+    {
+        public int id { get; set; }
+        public string from { get; set; }
+        public string status { get; set; }
+        public BitmapImage ImageSource { get; set; }
+        public int time { get; set; }
+    }
+
 }
