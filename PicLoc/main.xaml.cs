@@ -106,7 +106,7 @@ namespace PicLoc
                 client.DefaultRequestHeaders.Add("device", "Windows/NoIdentifierPresent");
             }
 
-            var response = await client.PostAsync(settings.url + "/device_id.php", content);
+            var response = await client.PostAsync(settings.API + "/device_id", content);
 
             var responseString = await response.Content.ReadAsStringAsync();
 
@@ -187,19 +187,19 @@ namespace PicLoc
 
             var content = new FormUrlEncodedContent(values);
 
-            client.DefaultRequestHeaders.Add("device", "WindowsClient/" + settings.version);
+            client.DefaultRequestHeaders.Add("device", "WindowsClient/" + settings.APP_version);
 
-            var response = await client.PostAsync(settings.url + "/login.php", content);
+            var response = await client.PostAsync(settings.API + "/login/", content);
 
             var responseString = await response.Content.ReadAsStringAsync();
 
             Debug.WriteLine("Login response: " + responseString);
 
-            JArray array = null;
+            JObject array = null;
 
             try {
 
-                array = JArray.Parse(responseString);
+                array = JObject.Parse(responseString);
             } catch (Exception ex)
             {
                 var dlg = new MessageDialog("Unexpected response from server: " + responseString);
@@ -208,19 +208,19 @@ namespace PicLoc
                 return;
             }
 
-            Debug.WriteLine(array[0]["status"].ToString());
+            Debug.WriteLine(array["status"].ToString());
 
-            if (array[0]["status"].ToString() == "True")
+            if (array["status"].ToString() == "True")
             {
 
                 var vault1 = new PasswordVault();
-                var cred1 = new PasswordCredential("PicLoc_accounts", username, array[0]["token"].ToString());
+                var cred1 = new PasswordCredential("PicLoc_accounts", username, array["token"].ToString());
                 vault1.Add(cred1);
                 Debug.WriteLine("Saved creds");
 
                 snapscreen.json = responseString;
                 Frame.Navigate(typeof(snapscreen));
-                static_pass = array[0]["token"].ToString();
+                static_pass = array["token"].ToString();
                 static_user = username;
                 /*
                 var dlg = new MessageDialog("Good login: " + responseString);
@@ -229,8 +229,8 @@ namespace PicLoc
                 */
             } else
             {
-                var dlg = new MessageDialog(array[0]["message"].ToString());
-                    dlg.Title = "Something went wrong: " + array[0]["code"];
+                var dlg = new MessageDialog(array["message"].ToString());
+                    dlg.Title = "Something went wrong: " + array["code"];
                 dlg.Commands.Add(new UICommand("Dismiss", null, "1"));
                 var op = await dlg.ShowAsync();
             }
@@ -249,8 +249,19 @@ namespace PicLoc
 
         private void button_login_Click(object sender, RoutedEventArgs e)
         {
-            if (password.Password == "")
+
+            String errorMsg = null;
+
+            if (password.Password == "" && username.Text == "")
             {
+                    Debug.WriteLine("No username or password");
+                errorMsg = "No username and password";
+
+            } else if(password.Password == "" && username.Text != ""){
+
+                // password empty so we search for creds
+
+                Debug.WriteLine("No password, but we have a username, try to login with token");
 
                 var vault = new PasswordVault();
                 try
@@ -273,17 +284,27 @@ namespace PicLoc
                         throw;
                     }*/
                 }
+
+            } else if(password.Password != "" && username.Text != "")
+            {
+                Debug.WriteLine("loggin in normally");
+                login(username.Text, password.Password); // try to login with username and passs
             } else
             {
-                if (username.Text == "" && password.Password == "")
-                {
-                    Debug.WriteLine("No username or password");
-                } else
-                {
-                    // loggin in with username + pass
-                    login(username.Text, password.Password);
-                }
+                errorMsg = "Did you only input a password?";
+                Debug.WriteLine("uh-oh");
+                // should never happen
             }
+
+            if (errorMsg != null)
+            {
+
+                var dlg = new MessageDialog(errorMsg);
+                dlg.Title = "Login error";
+                dlg.Commands.Add(new UICommand("Dismiss", null, "1"));
+                dlg.ShowAsync();
+            }
+
         }
     }
 }
