@@ -91,6 +91,7 @@ namespace PicLoc
             Debug.WriteLine("Snaps: " + items.Count);
 
             ObservableCollection<Snap> snapList = new ObservableCollection<Snap>();
+            ObservableCollection<Friend> friendList = new ObservableCollection<Friend>();
 
             foreach (var x in items)
             {
@@ -103,8 +104,21 @@ namespace PicLoc
                 //Debug.WriteLine("Value: " + x.Value.SelectToken("user_from")); // Get value from snap
             }
 
+            JObject friends = array["friends"].Value<JObject>();
+
+            foreach (var x in friends)
+            {
+
+                Friend tmp_friend = new Friend() { username = x.Key, status = x.Value.SelectToken("status").ToString(), display_name = x.Value.SelectToken("display_name").ToString() };
+
+                friendList.Add(tmp_friend);
+
+                //Debug.WriteLine("Key: " + x.Key); // A.K.A the ID of the snap
+                //Debug.WriteLine("Value: " + x.Value.SelectToken("user_from")); // Get value from snap
+            }
 
             listView.ItemsSource = snapList;
+            list_friends.ItemsSource = friendList;
 
             // OLD CODE //
 
@@ -263,10 +277,6 @@ namespace PicLoc
             {
                 const uint streamLength = 100000;
 
-                HttpMultipartFormDataContent multipartContent = new HttpMultipartFormDataContent();
-
-                HttpStreamContent streamContent = new HttpStreamContent(new SlowInputStream(streamLength));
-
 
                 var values = new Dictionary<string, string>
             {
@@ -277,10 +287,6 @@ namespace PicLoc
             };
 
                 HttpFormUrlEncodedContent formContent = new HttpFormUrlEncodedContent(values);
-                streamContent.Headers.ContentLength = streamLength;
-
-                multipartContent.Add(formContent);
-                multipartContent.Add(streamContent);
 
                 IProgress<HttpProgress> progress = new Progress<HttpProgress>(ProgressHandler);
                 response = await httpClient.PostAsync(new Uri(settings.API + "/get_snap/"), formContent).AsTask(cts.Token, progress);
@@ -349,7 +355,7 @@ namespace PicLoc
 
                 snap_image.Source = new BitmapImage(new Uri("ms-appdata:///local/images/" + current_snap.id + ".jpg", UriKind.Absolute));
 
-                // start timer (TODO: make it get the snap length
+                // start timer
 
 
                 dt = new DispatcherTimer();
@@ -382,6 +388,8 @@ namespace PicLoc
                 }
 
                 String message;
+
+                // TODO: fix array[0] stuff
 
                 try
                 {
@@ -437,6 +445,11 @@ namespace PicLoc
             Debug.WriteLine("Object Type: " + sender.GetType());
             snap_tapped((ListView)sender);
         }
+
+        private void image_list_Tapped(object sender, TappedRoutedEventArgs e)
+        {
+            pivot_snap.SelectedIndex = 2;
+        }
     }
 
     class Snap
@@ -446,6 +459,13 @@ namespace PicLoc
         public string status { get; set; }
         public BitmapImage ImageSource { get; set; }
         public int time { get; set; }
+    }
+
+    class Friend
+    {
+        public string username { get; set; }
+        public string status { get; set; }
+        public string display_name { get; set; }
     }
 
 }

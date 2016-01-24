@@ -31,7 +31,7 @@
                     </Grid>
                     <ListView x:Name="listView" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Tapped="listView_Tapped" Header="" IsSynchronizedWithCurrentItem="False" SelectionMode="Extended">
                         <ListView.ItemContainerStyle>
-                            <Style TargetType="ListViewItem">
+                            <Style x:Name="lvi" TargetType="ListViewItem">
                                 <Setter Property="HorizontalContentAlignment" Value="Stretch" />
                             </Style>
                         </ListView.ItemContainerStyle>
@@ -79,14 +79,38 @@
                         <RowDefinition Height=".25*" />
                     </Grid.RowDefinitions>
                     <Image x:Name="image_camera" Grid.Column="2" Margin="10" HorizontalAlignment="Stretch" Grid.Row="2" VerticalAlignment="Stretch" Source="Assets/snapscreen/Images/camera.png"/>
-                    <Image x:Name="image_list" Grid.Column="4" Margin="10" HorizontalAlignment="Stretch" Grid.Row="2" VerticalAlignment="Stretch" Source="Assets/snapscreen/Images/list.png"/>
+                    <Image x:Name="image_list" Grid.Column="4" Margin="10" HorizontalAlignment="Stretch" Grid.Row="2" VerticalAlignment="Stretch" Source="Assets/snapscreen/Images/list.png" Tapped="image_list_Tapped"/>
                     <Image x:Name="image_flash" Grid.Column="0" Margin="10" HorizontalAlignment="Stretch" Grid.Row="0" VerticalAlignment="Stretch" Source="Assets/snapscreen/Images/flash-auto.png"/>
                     <Image x:Name="image_camera_rotate" Grid.Column="5" Margin="10" HorizontalAlignment="Stretch" Grid.Row="0" VerticalAlignment="Stretch" Source="Assets/snapscreen/Images/camera-rotate.png"/>
                     <Image x:Name="image_solid_square" Grid.Column="0" Margin="10" HorizontalAlignment="Stretch" Grid.Row="2" VerticalAlignment="Stretch" Source="Assets/snapscreen/Images/solid-square.png" Tapped="image_solid_square_Tapped"/>
                 </Grid>
             </PivotItem>
             <PivotItem Margin="0,-50,0,0">
-                <Image x:Name="image2" HorizontalAlignment="Left" Height="154" Margin="78,196,0,0" VerticalAlignment="Top" Width="174" Source="Assets/Images/logo.png"/>
+                <Grid>
+                    <ListView x:Name="list_friends" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" IsSynchronizedWithCurrentItem="False" SelectionMode="Extended">
+                        <ListView.ItemContainerStyle>
+                            <Style x:Name="lvi_friends" TargetType="ListViewItem">
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            </Style>
+                        </ListView.ItemContainerStyle>
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="10, 10, 10, 10">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <!--<ColumnDefinition Width=".50*" />
+                                        <ColumnDefinition Width="5*" />-->
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Row="0" FontSize="24" Text="{Binding username}" />
+                                    <TextBlock Grid.Row="1" FontSize="14" Text="{Binding display_name}"></TextBlock>
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
             </PivotItem>
         </Pivot>
 
