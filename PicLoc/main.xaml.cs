@@ -31,6 +31,28 @@ namespace PicLoc
         public main()
         {
             this.InitializeComponent();
+
+            // Clear device ID //
+
+            /*var vault = new PasswordVault();
+            try
+            {
+                PasswordCredential cred = vault.Retrieve("device_id", "device_id");
+                if (cred != null)
+                {
+                    // we have a device id
+                    Debug.WriteLine("Current did: " + cred.Password);
+
+                    vault.Remove(cred);
+                }
+            }
+            catch (Exception e)
+            {
+
+            }*/
+
+            // !!! Clear device ID //
+
             checkDeviceID();
         }
 
@@ -100,24 +122,24 @@ namespace PicLoc
             {
                 var deviceInformation = new EasClientDeviceInformation();
                 string Id = deviceInformation.Id.ToString();
-                client.DefaultRequestHeaders.Add("device", "Windows/" + Id);
+                client.DefaultRequestHeaders.Add("device", "WindowsUWP/" + Id);
             } else
             {
-                client.DefaultRequestHeaders.Add("device", "Windows/NoIdentifierPresent");
+                client.DefaultRequestHeaders.Add("device", "WindowsUWP/NoIdentifierPresent");
             }
 
-            var response = await client.PostAsync(settings.API + "/device_id", content);
+            var response = await client.PostAsync(settings.API + "/device_id/", content);
 
             var responseString = await response.Content.ReadAsStringAsync();
 
             Debug.WriteLine("Login response: " + responseString);
 
-            JArray array = JArray.Parse(responseString);
+            JObject array = JObject.Parse(responseString);
 
-            Debug.WriteLine(array[0]["device_id"].ToString());
+            Debug.WriteLine(array["device_id"].ToString());
 
             var nvault = new PasswordVault();
-            var ncred = new PasswordCredential("device_id", "device_id", array[0]["device_id"].ToString());
+            var ncred = new PasswordCredential("device_id", "device_id", array["device_id"].ToString());
             vault.Add(ncred);
         }
 
