@@ -3,5 +3,5 @@ The official PicLoc app for Windows (Universal)
 
 Current testing username / password:
 
-    username: cody
-    password: cody
+    username: test
+    password: test
