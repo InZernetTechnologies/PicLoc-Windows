@@ -7,6 +7,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PicLoc", "PicLoc\PicLoc.csp
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug .NET Native|ARM = Debug .NET Native|ARM
+		Debug .NET Native|x64 = Debug .NET Native|x64
+		Debug .NET Native|x86 = Debug .NET Native|x86
 		Debug|ARM = Debug|ARM
 		Debug|x64 = Debug|x64
 		Debug|x86 = Debug|x86
@@ -15,6 +18,15 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A09EB567-CC83-4DC9-80B3-C3D20ECF1E9E}.Debug .NET Native|ARM.ActiveCfg = Debug .NET Native|ARM
+		{A09EB567-CC83-4DC9-80B3-C3D20ECF1E9E}.Debug .NET Native|ARM.Build.0 = Debug .NET Native|ARM
+		{A09EB567-CC83-4DC9-80B3-C3D20ECF1E9E}.Debug .NET Native|ARM.Deploy.0 = Debug .NET Native|ARM
+		{A09EB567-CC83-4DC9-80B3-C3D20ECF1E9E}.Debug .NET Native|x64.ActiveCfg = Debug .NET Native|x64
+		{A09EB567-CC83-4DC9-80B3-C3D20ECF1E9E}.Debug .NET Native|x64.Build.0 = Debug .NET Native|x64
+		{A09EB567-CC83-4DC9-80B3-C3D20ECF1E9E}.Debug .NET Native|x64.Deploy.0 = Debug .NET Native|x64
+		{A09EB567-CC83-4DC9-80B3-C3D20ECF1E9E}.Debug .NET Native|x86.ActiveCfg = Debug .NET Native|x86
+		{A09EB567-CC83-4DC9-80B3-C3D20ECF1E9E}.Debug .NET Native|x86.Build.0 = Debug .NET Native|x86
+		{A09EB567-CC83-4DC9-80B3-C3D20ECF1E9E}.Debug .NET Native|x86.Deploy.0 = Debug .NET Native|x86
 		{A09EB567-CC83-4DC9-80B3-C3D20ECF1E9E}.Debug|ARM.ActiveCfg = Debug|ARM
 		{A09EB567-CC83-4DC9-80B3-C3D20ECF1E9E}.Debug|ARM.Build.0 = Debug|ARM
 		{A09EB567-CC83-4DC9-80B3-C3D20ECF1E9E}.Debug|ARM.Deploy.0 = Debug|ARM
