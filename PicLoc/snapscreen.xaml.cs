@@ -1,26 +1,21 @@
 ﻿using System;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml;
-using Windows.UI.Xaml.Shapes;
-using Windows.UI;
-using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Imaging;
 using Newtonsoft.Json.Linq;
 using System.Diagnostics;
 using Windows.UI.Xaml.Input;
 using Windows.Security.Credentials;
-using Windows.Storage.Streams;
-using Windows.Security.Cryptography;
-using Windows.Security.Cryptography.Core;
 using Windows.UI.Popups;
 using System.IO;
 using Windows.Storage;
 using System.Threading.Tasks;
-using System.Globalization;
 using Windows.Web.Http;
 using System.Threading;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using Windows.Storage.Pickers;
+using Windows.Storage.Streams;
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=234238
 
 namespace PicLoc
@@ -55,7 +50,8 @@ namespace PicLoc
             // <!-- hide status bar
             createImageFolder();
 
-            set(); //rename set function
+            set_snaps();
+            set_friends(); //rename set function
 
         }
 
@@ -82,29 +78,18 @@ namespace PicLoc
 
         }
 
-        private void set()
+        private void set_friends()
         {
+
+            list_friends.ItemsSource = null;
+
             JObject array = JObject.Parse(json);
 
-            JObject items = array["snaps"].Value<JObject>();
-
-            Debug.WriteLine("Snaps: " + items.Count);
-
-            ObservableCollection<Snap> snapList = new ObservableCollection<Snap>();
-            ObservableCollection<Friend> friendList = new ObservableCollection<Friend>();
-
-            foreach (var x in items)
-            {
-
-                Snap tmp_snap = new Snap() { id = int.Parse(x.Key), from = x.Value.SelectToken("user_from").ToString(), status = x.Value.SelectToken("status").ToString(), ImageSource = new BitmapImage(new Uri(this.BaseUri, "/Assets/snapscreen/Images/" + x.Value.SelectToken("status").ToString() + ".png")), time = int.Parse(x.Value.SelectToken("time").ToString()) };
-
-                snapList.Add(tmp_snap);
-
-                //Debug.WriteLine("Key: " + x.Key); // A.K.A the ID of the snap
-                //Debug.WriteLine("Value: " + x.Value.SelectToken("user_from")); // Get value from snap
-            }
-
             JObject friends = array["friends"].Value<JObject>();
+
+            Debug.WriteLine("Friends: " + friends.Count);
+
+            ObservableCollection<Friend> friendList = new ObservableCollection<Friend>();
 
             foreach (var x in friends)
             {
@@ -117,69 +102,33 @@ namespace PicLoc
                 //Debug.WriteLine("Value: " + x.Value.SelectToken("user_from")); // Get value from snap
             }
 
-            listView.ItemsSource = snapList;
             list_friends.ItemsSource = friendList;
 
-            // OLD CODE //
+        }
 
-            /*for (int i = 0; i < items.Count; i++)
+        private void set_snaps()
+        {
+            JObject array = JObject.Parse(json);
+
+            JObject items = array["snaps"].Value<JObject>();
+
+            Debug.WriteLine("Snaps: " + items.Count);
+
+            ObservableCollection<Snap> snapList = new ObservableCollection<Snap>();
+
+            foreach (var x in items)
             {
-                Debug.WriteLine("SnapID: " + items[i]["id"]);
 
-                img = new Image();
-                img.Source = new BitmapImage(new Uri(this.BaseUri, "/Assets/snapscreen/Images/" + items[i]["status"] + ".png"));
-                img.HorizontalAlignment = HorizontalAlignment.Center;
-                img.VerticalAlignment = VerticalAlignment.Center;
-                img.Width = 30;
-                img.Height = 30;
+                Snap tmp_snap = new Snap() { id = int.Parse(x.Key), from = x.Value.SelectToken("user_from").ToString(), status = x.Value.SelectToken("status").ToString(), ImageSource = new BitmapImage(new Uri(this.BaseUri, "/Assets/snapscreen/Images/" + x.Value.SelectToken("status").ToString() + ".png")), time = int.Parse(x.Value.SelectToken("time").ToString()) };
 
-                username = new TextBlock();
-                username.Name = items[i]["id"].ToString();
-                username.Tapped += snap_tapped;
-                username.Text = items[i]["user_from"].ToString();
-                username.FontSize = 24;
+                snapList.Add(tmp_snap);
 
-                txt = new TextBlock();
-                txt.Text = "Tap to reply";
-                txt.FontSize = 14;
+                //Debug.WriteLine("Key: " + x.Key); // A.K.A the ID of the snap
+                //Debug.WriteLine("Value: " + x.Value.SelectToken("user_from")); // Get value from snap
+            }
 
-                var snap_grid_item = new Grid();
+            listView.ItemsSource = snapList;
 
-                RowDefinition r0 = new RowDefinition();
-                r0.Height = new GridLength(0, GridUnitType.Auto);
-                RowDefinition r1 = new RowDefinition();
-                r1.Height = new GridLength(0, GridUnitType.Auto);
-
-                ColumnDefinition c0 = new ColumnDefinition();
-                c0.Width = new GridLength(.50, GridUnitType.Star);
-
-                ColumnDefinition c1 = new ColumnDefinition();
-                c1.Width = new GridLength(5, GridUnitType.Star);
-
-                snap_grid_item.Margin = new Thickness(10);
-
-                snap_grid_item.RowDefinitions.Add(r0);
-                snap_grid_item.RowDefinitions.Add(r1);
-                snap_grid_item.ColumnDefinitions.Add(c0);
-                snap_grid_item.ColumnDefinitions.Add(c1);
-
-                Grid.SetColumn(img, 0);
-                Grid.SetRowSpan(img, 2);
-
-                Grid.SetColumn(username, 1);
-
-                Grid.SetColumn(txt, 1);
-                Grid.SetRow(txt, 1);
-
-                snap_grid_item.Children.Add(img);
-                snap_grid_item.Children.Add(username);
-                snap_grid_item.Children.Add(txt);
-
-                stackpanel.Children.Add(snap_grid_item);
-
-            }*/
-
-            // !!! OLD CODE !!! ///
         }
 
         private void ProgressHandler(HttpProgress progress)
@@ -236,7 +185,7 @@ namespace PicLoc
 
         private async void snap_tapped(ListView lv)
         {
-
+            var lv_item = lv.SelectedItem;
             Snap current_snap = (Snap)lv.SelectedItem;
 
             listView.SelectedIndex = -1;
@@ -275,9 +224,6 @@ namespace PicLoc
 
             try
             {
-                const uint streamLength = 100000;
-
-
                 var values = new Dictionary<string, string>
             {
                 { "username", main.static_user },
@@ -305,29 +251,6 @@ namespace PicLoc
                 Debug.WriteLine("* COMPLETED *");
             }
 
-            /// !!! OLD CODE !!! ///
-
-            /*var values = new Dictionary<string, string>
-            {
-                { "username", main.static_user },
-                { "password", main.static_pass },
-                { "device_id", deviceid.ToString() },
-                { "snap_id", ((TextBlock)sender).Name }
-            };
-
-            var client = new System.Net.Http.HttpClient();
-
-            var content = new FormUrlEncodedContent(values);
-
-            client.DefaultRequestHeaders.Add("device", "WindowsClient/" + settings.version);
-
-            var response = await client.PostAsync(settings.url + "/get_snap.php", content);
-            var responseString = await response.Content.ReadAsStringAsync();
-            var responseBytes = await response.Content.ReadAsByteArrayAsync();
-
-            Old login code, obsolete.
-
-            */
 
             JArray array = null;
 
@@ -355,8 +278,33 @@ namespace PicLoc
 
                 snap_image.Source = new BitmapImage(new Uri("ms-appdata:///local/images/" + current_snap.id + ".jpg", UriKind.Absolute));
 
-                // start timer
+                // remove from list
 
+                Debug.WriteLine("Snap removal location");
+
+                ObservableCollection<Snap> snapList = new ObservableCollection<Snap>();
+                snapList = (ObservableCollection<Snap>)listView.ItemsSource;
+                listView.ItemsSource = null;
+
+                foreach (Snap s in snapList)
+                {
+                    if (s == current_snap)
+                    {
+                        int ind = snapList.IndexOf(s);
+                        Debug.WriteLine("snap to remove: " + ind);
+                        snapList.RemoveAt(ind);
+                        break;
+                        //snapList.RemoveAt(snapList.IndexOf(s));
+                    }
+                }
+
+                //listView.Items.Clear();
+                listView.ItemsSource = snapList;
+
+                //listView.Items.RemoveAt(current_snap_location);
+
+
+                // start timer
 
                 dt = new DispatcherTimer();
                 dt.Tick += dt_tick;
@@ -364,7 +312,6 @@ namespace PicLoc
                 dt.Start();
 
                 snap_num.Text = current_snap.time.ToString();
-                // delete snap
 
 
             }
@@ -449,6 +396,198 @@ namespace PicLoc
         private void image_list_Tapped(object sender, TappedRoutedEventArgs e)
         {
             pivot_snap.SelectedIndex = 2;
+        }
+
+        private async void getSnaps()
+        {
+
+            var vault = new PasswordVault();
+            PasswordCredential cred;
+            String deviceid = null;
+            try
+            {
+                cred = vault.Retrieve("device_id", "device_id");
+                if (cred != null)
+                {
+                    // we have a device id
+                    Debug.WriteLine("Device ID for login: " + cred.Password);
+                    deviceid = cred.Password;
+                }
+            }
+            catch (Exception e)
+            {
+
+            }
+
+            var values = new Dictionary<string, string>
+            {
+                { "username", main.static_user },
+                { "password", main.static_pass },
+                { "device_id", deviceid.ToString() }
+            };
+
+            var client = new HttpClient();
+
+            var content = new HttpFormUrlEncodedContent(values);
+
+            client.DefaultRequestHeaders.Add("device", "WindowsClient/" + settings.APP_version);
+
+            var response = await client.PostAsync(new Uri(settings.API + "/get_snaps/"), content);
+
+            var responseString = await response.Content.ReadAsStringAsync();
+
+            Debug.WriteLine("getSnaps response: " + responseString);
+
+            JObject array = null;
+
+            try
+            {
+                array = JObject.Parse(responseString);
+            }
+            catch (Exception ex)
+            {
+                var dlg = new MessageDialog("Unexpected response from server: " + responseString);
+                dlg.Commands.Add(new UICommand("Dismiss", null, "1"));
+                var op = await dlg.ShowAsync();
+                return;
+            }
+
+            Debug.WriteLine("getSnaps: " + array["status"].ToString());
+
+            if (array["status"].ToString() == "True")
+            {
+                json = responseString;
+                listView.ItemsSource = null;
+                set_snaps();
+            }
+            else
+            {
+                var dlg = new MessageDialog(array["message"].ToString());
+                dlg.Title = "Something went wrong: " + array["code"];
+                dlg.Commands.Add(new UICommand("Dismiss", null, "1"));
+                var op = await dlg.ShowAsync();
+            }
+        }
+
+        private async void image_camera_Tapped(object sender, TappedRoutedEventArgs e)
+        {
+            if (snap_progress.Value != 100)
+            {
+                Debug.WriteLine("Not finished downloading snap");
+                return;
+            }
+
+            HttpResponseMessage response = null;
+            String responseString = null;
+
+            var vault = new PasswordVault();
+            PasswordCredential cred;
+            String deviceid = null;
+            try
+            {
+                cred = vault.Retrieve("device_id", "device_id");
+                if (cred != null)
+                {
+                    // we have a device id
+                    Debug.WriteLine("Device ID for login: " + cred.Password);
+                    deviceid = cred.Password;
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+
+            snap_progress.Value = 0;
+
+
+            FileOpenPicker openPicker = new FileOpenPicker();
+            openPicker.ViewMode = PickerViewMode.Thumbnail;
+            openPicker.SuggestedStartLocation = PickerLocationId.PicturesLibrary;
+            openPicker.FileTypeFilter.Add(".jpg");
+            openPicker.FileTypeFilter.Add(".png");
+
+            StorageFile file = await openPicker.PickSingleFileAsync();
+
+            IInputStream inputStream = await file.OpenAsync(FileAccessMode.Read);
+
+
+            if (file != null)
+            {
+
+                try
+                {
+                    HttpMultipartFormDataContent multipartContent = new HttpMultipartFormDataContent();
+
+
+                    multipartContent.Add(
+                        new HttpStreamContent(inputStream),
+                        "snap",
+                        file.Name);
+
+                    multipartContent.Add(new HttpStringContent(main.static_user), "username");
+                    multipartContent.Add(new HttpStringContent(main.static_pass), "password");
+                    multipartContent.Add(new HttpStringContent(deviceid), "device_id");
+                    multipartContent.Add(new HttpStringContent("test"), "send_snap_to");
+                    multipartContent.Add(new HttpStringContent("10"), "send_snap_time");
+
+                    IProgress<HttpProgress> progress = new Progress<HttpProgress>(ProgressHandler);
+                    response = await httpClient.PostAsync(new Uri(settings.API + "/send_snap/"), multipartContent).AsTask(cts.Token, progress);
+                    responseString = await response.Content.ReadAsStringAsync();
+                    Debug.WriteLine("Send snap response: " + responseString);
+                    Debug.WriteLine("Send snap code: " + response.StatusCode.ToString());
+                    Debug.WriteLine("******* DONE *******");
+                }
+                catch (TaskCanceledException)
+                {
+                    Debug.WriteLine("Cancelled");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine("Error: " + ex.StackTrace);
+                }
+                finally
+                {
+                    snap_progress.Value = 100;
+                    Debug.WriteLine("* COMPLETED *");
+                }
+
+                JObject array = null;
+
+                try
+                {
+                    array = JObject.Parse(responseString);
+                }
+                catch (Exception ex)
+                {
+                    var dlg = new MessageDialog("Unexpected response from server: " + responseString);
+                    dlg.Commands.Add(new UICommand("Dismiss", null, "1"));
+                    var op = await dlg.ShowAsync();
+                    return;
+                }
+
+                Debug.WriteLine("send_snap: " + array["status"].ToString());
+
+                if (array["status"].ToString() == "True")
+                {
+                    listView.ItemsSource = null;
+                    getSnaps();
+                }
+                else
+                {
+                    Debug.WriteLine("error of some sorts");
+                    var dlg = new MessageDialog(array["message"].ToString());
+                    dlg.Title = "Something went wrong: " + array["code"];
+                    dlg.Commands.Add(new UICommand("Dismiss", null, "1"));
+                    var op = await dlg.ShowAsync();
+                }
+
+            } else {
+
+                // file is null
+
+            }
+
         }
     }
 
