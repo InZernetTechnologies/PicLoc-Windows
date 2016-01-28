@@ -220,7 +220,6 @@ namespace PicLoc
             JObject array = null;
 
             try {
-
                 array = JObject.Parse(responseString);
             } catch (Exception ex)
             {
