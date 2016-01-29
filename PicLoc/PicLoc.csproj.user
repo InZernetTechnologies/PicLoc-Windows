@@ -16,7 +16,7 @@
   <PropertyGroup>
     <AppxPackageIsForStore>False</AppxPackageIsForStore>
     <AppxShowAllApps>False</AppxShowAllApps>
-    <AppxBuildConfigurationSelection>arm</AppxBuildConfigurationSelection>
+    <AppxBuildConfigurationSelection>x86|x64|arm</AppxBuildConfigurationSelection>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug .NET Native|x64'">
     <AuthenticationMode>Windows</AuthenticationMode>
