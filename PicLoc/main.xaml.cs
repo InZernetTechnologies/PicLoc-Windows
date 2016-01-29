@@ -32,6 +32,15 @@ namespace PicLoc
         {
             this.InitializeComponent();
 
+            // hide status bar
+
+            if (Windows.Foundation.Metadata.ApiInformation.IsTypePresent("Windows.UI.ViewManagement.StatusBar"))
+            {
+                var i = Windows.UI.ViewManagement.StatusBar.GetForCurrentView().HideAsync();
+            }
+
+            // <!-- hide status bar
+
             // Clear device ID //
 
             /*var vault = new PasswordVault();
@@ -54,6 +63,7 @@ namespace PicLoc
             // !!! Clear device ID //
 
             checkDeviceID();
+            autoLogin();
         }
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
@@ -90,6 +100,39 @@ namespace PicLoc
             {
                 e.Handled = true;
                 Frame.GoBack();
+            }
+        }
+
+        private void autoLogin()
+        {
+            var vault = new PasswordVault();
+            String autoLogin;
+            try
+            {
+                PasswordCredential cred = vault.Retrieve("PicLoc", "autoLogin");
+                if (cred != null)
+                {
+                    // we have a device id
+                    Debug.WriteLine("AutoLogin: " + cred.Password);
+                    autoLogin = cred.Password;
+                    username.Text = autoLogin;
+                    try
+                    {
+                        PasswordCredential cred1 = vault.Retrieve("PicLoc_accounts", autoLogin);
+                        if (cred != null)
+                        {
+                            password.Password = cred1.Password;
+                            login(autoLogin, cred1.Password, true);
+                        }
+                    } catch (Exception exx)
+                    {
+
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                return;
             }
         }
 
@@ -238,6 +281,11 @@ namespace PicLoc
                 var cred1 = new PasswordCredential("PicLoc_accounts", username, array["token"].ToString());
                 vault1.Add(cred1);
                 Debug.WriteLine("Saved creds");
+
+                var vault2 = new PasswordVault();
+                var cred2 = new PasswordCredential("PicLoc", "autoLogin", username);
+                vault1.Add(cred2);
+                Debug.WriteLine("SAved autologin");
 
                 snapscreen.json = responseString;
                 Frame.Navigate(typeof(snapscreen));
