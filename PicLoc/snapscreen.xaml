@@ -8,13 +8,27 @@
     mc:Ignorable="d">
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+        <Grid Name="xaml_topBar" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <ProgressBar Name="snap_progress" Grid.Row="0" HorizontalAlignment="Stretch" Height="16" VerticalAlignment="Top" Value="100" ValueChanged="snap_progress_ValueChanged">
+                <ProgressBar.Background>
+                    <SolidColorBrush Color="#33000000"/>
+                </ProgressBar.Background>
+            </ProgressBar>
+            <TextBlock Name="snap_action" VerticalAlignment="Center" Margin="0, -4, 0, 0" HorizontalAlignment="Center" />
+        </Grid>
+
         <CaptureElement Name="PreviewControl" Stretch="Uniform" ManipulationMode="Scale" />
 
         <Canvas Name="FocusCanvas">
             <Rectangle Name="FocusRectangle" Stroke="White" StrokeThickness="2" Visibility="Collapsed"/>
         </Canvas>
         <Pivot x:Name="pivot_snap" SelectedIndex="1">
-            <PivotItem Margin="0,-50,0,0">
+            <PivotItem Name="pivot_snap_list" Header="Snap List">
                 <Grid>
                     <Grid Name="snap_grid">
                         <Grid.RowDefinitions>
@@ -25,7 +39,7 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="50" />
                         </Grid.ColumnDefinitions>
-                        <Image x:Name="snap_image" Visibility="Collapsed" Grid.ColumnSpan="2" Grid.RowSpan="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Tapped="snap_image_Tapped"/>
+                        <Image x:Name="snap_image" Visibility="Collapsed" Grid.ColumnSpan="2" Grid.RowSpan="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Tapped="snap_image_Tapped" ImageOpened="snap_image_ImageOpened"/>
                         <Ellipse Name="snap_ellipse" Visibility="Collapsed" Grid.Column="1" HorizontalAlignment="Stretch" Margin="3, 3, 3, 3" Stroke="Black" StrokeThickness="2" VerticalAlignment="Stretch" />
                         <TextBlock x:Name="snap_num" Visibility="Collapsed" Grid.Column="1" HorizontalAlignment="Center" TextWrapping="Wrap" Text="10" VerticalAlignment="Center"/>
                     </Grid>
@@ -57,14 +71,9 @@
                             </DataTemplate>
                         </ListView.ItemTemplate>
                     </ListView>
-                    <ProgressBar Name="snap_progress" HorizontalAlignment="Stretch" Height="5" VerticalAlignment="Bottom" Value="100">
-                        <ProgressBar.Background>
-                            <SolidColorBrush Color="#33000000" Opacity="0.5"/>
-                        </ProgressBar.Background>
-                    </ProgressBar>
                 </Grid>
             </PivotItem>
-            <PivotItem Margin="0,-50,0,0">
+            <PivotItem Header="Camera" Name="pivot_camera">
                 <Grid x:Name="grid_camera" >
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -85,7 +94,7 @@
                     <Image x:Name="image_solid_square" Grid.Column="0" Margin="10" HorizontalAlignment="Stretch" Grid.Row="2" VerticalAlignment="Stretch" Source="Assets/snapscreen/Images/solid-square.png" Tapped="image_solid_square_Tapped"/>
                 </Grid>
             </PivotItem>
-            <PivotItem Margin="0,-50,0,0">
+            <PivotItem Header="Friend List" Name="pivot_friends">
                 <Grid>
                     <ListView x:Name="list_friends" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" IsSynchronizedWithCurrentItem="False" SelectionMode="Extended">
                         <ListView.ItemContainerStyle>

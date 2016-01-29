@@ -16,12 +16,17 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Windows.Storage.Pickers;
 using Windows.Storage.Streams;
+using Windows.Foundation.Metadata;
+using Windows.UI.ViewManagement;
+using Windows.UI;
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=234238
 
 namespace PicLoc
 {
     public sealed partial class snapscreen : Page
     {
+
+        Snap p_current_snap;
 
         public static string json;
         private StorageFolder image_folder;
@@ -35,24 +40,43 @@ namespace PicLoc
         public snapscreen()
         {
 
+            Windows.UI.ViewManagement.ApplicationView.GetForCurrentView().IsScreenCaptureEnabled = false;
+
             httpClient = new HttpClient();
             cts = new CancellationTokenSource();
 
             this.InitializeComponent();
+            // see if on mobile //
 
-            // hide status bar
-
-            if (Windows.Foundation.Metadata.ApiInformation.IsTypePresent("Windows.UI.ViewManagement.StatusBar"))
+            if (IsMobile)
             {
-                var i = Windows.UI.ViewManagement.StatusBar.GetForCurrentView().HideAsync();
+                pivot_snap_list.Margin = new Thickness(0, -50, 0, 0);
+                pivot_snap_list.Header = null;
+                pivot_camera.Margin = new Thickness(0, -50, 0, 0);
+                pivot_camera.Header = null;
+                pivot_friends.Margin = new Thickness(0, -50, 0, 0);
+                pivot_friends.Header = null;
+            } else
+            {
+                
             }
 
-            // <!-- hide status bar
+            // !! see if on mobile !!
+
             createImageFolder();
 
             set_snaps();
             set_friends(); //rename set function
 
+        }
+
+        public static bool IsMobile
+        {
+            get
+            {
+                var qualifiers = Windows.ApplicationModel.Resources.Core.ResourceContext.GetForCurrentView().QualifierValues;
+                return (qualifiers.ContainsKey("DeviceFamily") && qualifiers["DeviceFamily"] == "Mobile");
+            }
         }
 
         private async void createImageFolder()
@@ -234,6 +258,8 @@ namespace PicLoc
 
                 HttpFormUrlEncodedContent formContent = new HttpFormUrlEncodedContent(values);
 
+                snap_action.Text = "Downloading Snap";
+
                 IProgress<HttpProgress> progress = new Progress<HttpProgress>(ProgressHandler);
                 response = await httpClient.PostAsync(new Uri(settings.API + "/get_snap/"), formContent).AsTask(cts.Token, progress);
                 responseString = await response.Content.ReadAsStringAsync();
@@ -270,6 +296,8 @@ namespace PicLoc
 
                 }
 
+                p_current_snap = current_snap;
+
                 // display snap
                 snap_image.Visibility = Visibility.Visible;
                 snap_num.Visibility = Visibility.Visible;
@@ -305,11 +333,6 @@ namespace PicLoc
 
 
                 // start timer
-
-                dt = new DispatcherTimer();
-                dt.Tick += dt_tick;
-                dt.Interval = new TimeSpan(0, 0, 1);
-                dt.Start();
 
                 snap_num.Text = current_snap.time.ToString();
 
@@ -369,13 +392,23 @@ namespace PicLoc
             pivot_snap.SelectedIndex = 0;
         }
 
-        private void restSnapView()
+        private async void restSnapView()
         {
             dt.Stop();
+            snap_image.Source = null;
             snap_image.Visibility = Visibility.Collapsed;
             snap_num.Visibility = Visibility.Collapsed;
             snap_ellipse.Visibility = Visibility.Collapsed;
             listView.Visibility = Visibility.Visible;
+
+            Debug.WriteLine("Snap file to delete: " + p_current_snap.id);
+
+            StorageFolder img = await ApplicationData.Current.LocalFolder.GetFolderAsync("images");
+
+            StorageFile snap = await img.GetFileAsync(p_current_snap.id + ".jpg");
+
+            snap.DeleteAsync();
+
         }
 
         private void snap_image_Tapped(object sender, TappedRoutedEventArgs e)
@@ -498,8 +531,6 @@ namespace PicLoc
 
             }
 
-            snap_progress.Value = 0;
-
 
             FileOpenPicker openPicker = new FileOpenPicker();
             openPicker.ViewMode = PickerViewMode.Thumbnail;
@@ -509,11 +540,12 @@ namespace PicLoc
 
             StorageFile file = await openPicker.PickSingleFileAsync();
 
-            IInputStream inputStream = await file.OpenAsync(FileAccessMode.Read);
-
 
             if (file != null)
             {
+                snap_progress.Value = 0;
+                snap_action.Text = "Uploading Snap";
+                IInputStream inputStream = await file.OpenAsync(FileAccessMode.Read);
 
                 try
                 {
@@ -530,6 +562,7 @@ namespace PicLoc
                     multipartContent.Add(new HttpStringContent(deviceid), "device_id");
                     multipartContent.Add(new HttpStringContent("test"), "send_snap_to");
                     multipartContent.Add(new HttpStringContent("10"), "send_snap_time");
+                    
 
                     IProgress<HttpProgress> progress = new Progress<HttpProgress>(ProgressHandler);
                     response = await httpClient.PostAsync(new Uri(settings.API + "/send_snap/"), multipartContent).AsTask(cts.Token, progress);
@@ -588,6 +621,25 @@ namespace PicLoc
 
             }
 
+        }
+
+        private void snap_progress_ValueChanged(object sender, Windows.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
+        {
+            if (snap_progress.Value != 100)
+            {
+                xaml_topBar.Visibility = Visibility.Visible;
+            } else
+            {
+                xaml_topBar.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private void snap_image_ImageOpened(object sender, RoutedEventArgs e)
+        {
+            dt = new DispatcherTimer();
+            dt.Tick += dt_tick;
+            dt.Interval = new TimeSpan(0, 0, 1);
+            dt.Start();
         }
     }
 
