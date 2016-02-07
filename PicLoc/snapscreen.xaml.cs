@@ -19,6 +19,8 @@ using Windows.Storage.Streams;
 using Windows.Foundation.Metadata;
 using Windows.UI.ViewManagement;
 using Windows.UI;
+using Windows.ApplicationModel.Core;
+using Windows.Networking.PushNotifications;
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=234238
 
 namespace PicLoc
@@ -28,6 +30,12 @@ namespace PicLoc
 
         Snap p_current_snap;
 
+        bool isSendingSnap;
+
+        String snapTemp_user;
+        StorageFile snapTemp_snap;
+        String snapTemp_deviceid;
+
         public static string json;
         private StorageFolder image_folder;
         DispatcherTimer dt;
@@ -36,9 +44,9 @@ namespace PicLoc
         private HttpClient httpClient;
         private CancellationTokenSource cts;
 
-
         public snapscreen()
         {
+            getPNChannel();
 
             Windows.UI.ViewManagement.ApplicationView.GetForCurrentView().IsScreenCaptureEnabled = false;
 
@@ -56,6 +64,8 @@ namespace PicLoc
                 pivot_camera.Header = null;
                 pivot_friends.Margin = new Thickness(0, -50, 0, 0);
                 pivot_friends.Header = null;
+                pivot_settings.Margin = new Thickness(0, -50, 0, 0);
+                pivot_settings.Header = null;
             } else
             {
                 
@@ -68,6 +78,13 @@ namespace PicLoc
             set_snaps();
             set_friends(); //rename set function
 
+        }
+
+        public async void getPNChannel()
+        {
+            PushNotificationChannel channel = await PushNotificationChannelManager.CreatePushNotificationChannelForApplicationAsync();
+
+            Debug.WriteLine("Channel URI: " + channel.Uri);
         }
 
         public static bool IsMobile
@@ -109,16 +126,34 @@ namespace PicLoc
 
             JObject array = JObject.Parse(json);
 
+            ObservableCollection<Friend> friendList = new ObservableCollection<Friend>();
+
+            Friend tmp_myself = new Friend() { username = main.static_user, status = "friends", display_name = "Me :)" };
+
+            friendList.Add(tmp_myself);
+
+            try
+            {
+                if (array["friends"] == null)
+                {
+                    list_friends.ItemsSource = friendList;
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                list_friends.ItemsSource = friendList;
+                return;
+            }
+
             JObject friends = array["friends"].Value<JObject>();
 
             Debug.WriteLine("Friends: " + friends.Count);
 
-            ObservableCollection<Friend> friendList = new ObservableCollection<Friend>();
-
             foreach (var x in friends)
             {
 
-                Friend tmp_friend = new Friend() { username = x.Key, status = x.Value.SelectToken("status").ToString(), display_name = x.Value.SelectToken("display_name").ToString() };
+                Friend tmp_friend = new Friend() { username = x.Key, status = x.Value.SelectToken("status").ToString(), display_name = "Test Display name" };
 
                 friendList.Add(tmp_friend);
 
@@ -134,11 +169,22 @@ namespace PicLoc
         {
             JObject array = JObject.Parse(json);
 
+            ObservableCollection<Snap> snapList = new ObservableCollection<Snap>();
+
+            try
+            {
+                if (array["snaps"] == null)
+                {
+                    return;
+                }
+            } catch (Exception ex)
+            {
+                return;
+            }
+
             JObject items = array["snaps"].Value<JObject>();
 
             Debug.WriteLine("Snaps: " + items.Count);
-
-            ObservableCollection<Snap> snapList = new ObservableCollection<Snap>();
 
             foreach (var x in items)
             {
@@ -153,6 +199,94 @@ namespace PicLoc
 
             listView.ItemsSource = snapList;
 
+        }
+
+        private async void sendSnap(String userTo, StorageFile file, String deviceid, int time)
+        {
+            if (file != null)
+            {
+                snap_progress.Value = 0;
+                snap_action.Text = "Uploading Snap";
+                IInputStream inputStream = await file.OpenAsync(FileAccessMode.Read);
+
+                HttpResponseMessage response = null;
+                String responseString = null;
+
+                try
+                {
+                    HttpMultipartFormDataContent multipartContent = new HttpMultipartFormDataContent();
+
+
+                    multipartContent.Add(
+                        new HttpStreamContent(inputStream),
+                        "snap",
+                        file.Name);
+
+                    multipartContent.Add(new HttpStringContent(main.static_user), "username");
+                    multipartContent.Add(new HttpStringContent(main.static_pass), "password");
+                    multipartContent.Add(new HttpStringContent(deviceid), "device_id");
+                    multipartContent.Add(new HttpStringContent(userTo), "send_snap_to");
+                    multipartContent.Add(new HttpStringContent(time.ToString()), "send_snap_time");
+
+
+                    IProgress<HttpProgress> progress = new Progress<HttpProgress>(ProgressHandler);
+                    response = await httpClient.PostAsync(new Uri(settings.API + "/send_snap/"), multipartContent).AsTask(cts.Token, progress);
+                    responseString = await response.Content.ReadAsStringAsync();
+                    Debug.WriteLine("Send snap response: " + responseString);
+                    Debug.WriteLine("Send snap code: " + response.StatusCode.ToString());
+                    Debug.WriteLine("******* DONE *******");
+                }
+                catch (TaskCanceledException)
+                {
+                    Debug.WriteLine("Cancelled");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine("Error: " + ex.StackTrace);
+                }
+                finally
+                {
+                    snap_progress.Value = 100;
+                    Debug.WriteLine("* COMPLETED *");
+                }
+
+                JObject array = null;
+
+                try
+                {
+                    array = JObject.Parse(responseString);
+                }
+                catch (Exception ex)
+                {
+                    var dlg = new MessageDialog("Unexpected response from server: " + responseString);
+                    dlg.Commands.Add(new UICommand("Dismiss", null, "1"));
+                    var op = await dlg.ShowAsync();
+                    return;
+                }
+
+                Debug.WriteLine("send_snap: " + array["status"].ToString());
+
+                if (array["status"].ToString() == "True")
+                {
+                    listView.ItemsSource = null;
+                    getSnaps();
+                    pivot_snap.SelectedIndex = 0;
+                }
+                else
+                {
+                    Debug.WriteLine("error of some sorts");
+                    var dlg = new MessageDialog(array["message"].ToString());
+                    dlg.Title = "Something went wrong: " + array["code"];
+                    dlg.Commands.Add(new UICommand("Dismiss", null, "1"));
+                    var op = await dlg.ShowAsync();
+                }
+
+            }
+            else {
+
+                // file is null
+
+            }
         }
 
         private void ProgressHandler(HttpProgress progress)
@@ -417,8 +551,7 @@ namespace PicLoc
              restSnapView(); 
          }
 
-
-    private void listView_Tapped(object sender, TappedRoutedEventArgs e)
+        private void listView_Tapped(object sender, TappedRoutedEventArgs e)
         {
             Debug.WriteLine(listView.SelectedIndex);
             Debug.WriteLine("Snap ID Selected: " + ((Snap)listView.SelectedItem).id);
@@ -510,9 +643,6 @@ namespace PicLoc
                 return;
             }
 
-            HttpResponseMessage response = null;
-            String responseString = null;
-
             var vault = new PasswordVault();
             PasswordCredential cred;
             String deviceid = null;
@@ -540,86 +670,14 @@ namespace PicLoc
 
             StorageFile file = await openPicker.PickSingleFileAsync();
 
+            snap_action.Text = "Waiting to select friend";
+            xaml_topBar.Visibility = Visibility;
 
-            if (file != null)
-            {
-                snap_progress.Value = 0;
-                snap_action.Text = "Uploading Snap";
-                IInputStream inputStream = await file.OpenAsync(FileAccessMode.Read);
+            snapTemp_deviceid = deviceid;
+            snapTemp_snap = file;
+            isSendingSnap = true;
 
-                try
-                {
-                    HttpMultipartFormDataContent multipartContent = new HttpMultipartFormDataContent();
-
-
-                    multipartContent.Add(
-                        new HttpStreamContent(inputStream),
-                        "snap",
-                        file.Name);
-
-                    multipartContent.Add(new HttpStringContent(main.static_user), "username");
-                    multipartContent.Add(new HttpStringContent(main.static_pass), "password");
-                    multipartContent.Add(new HttpStringContent(deviceid), "device_id");
-                    multipartContent.Add(new HttpStringContent("test"), "send_snap_to");
-                    multipartContent.Add(new HttpStringContent("10"), "send_snap_time");
-                    
-
-                    IProgress<HttpProgress> progress = new Progress<HttpProgress>(ProgressHandler);
-                    response = await httpClient.PostAsync(new Uri(settings.API + "/send_snap/"), multipartContent).AsTask(cts.Token, progress);
-                    responseString = await response.Content.ReadAsStringAsync();
-                    Debug.WriteLine("Send snap response: " + responseString);
-                    Debug.WriteLine("Send snap code: " + response.StatusCode.ToString());
-                    Debug.WriteLine("******* DONE *******");
-                }
-                catch (TaskCanceledException)
-                {
-                    Debug.WriteLine("Cancelled");
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine("Error: " + ex.StackTrace);
-                }
-                finally
-                {
-                    snap_progress.Value = 100;
-                    Debug.WriteLine("* COMPLETED *");
-                }
-
-                JObject array = null;
-
-                try
-                {
-                    array = JObject.Parse(responseString);
-                }
-                catch (Exception ex)
-                {
-                    var dlg = new MessageDialog("Unexpected response from server: " + responseString);
-                    dlg.Commands.Add(new UICommand("Dismiss", null, "1"));
-                    var op = await dlg.ShowAsync();
-                    return;
-                }
-
-                Debug.WriteLine("send_snap: " + array["status"].ToString());
-
-                if (array["status"].ToString() == "True")
-                {
-                    listView.ItemsSource = null;
-                    getSnaps();
-                }
-                else
-                {
-                    Debug.WriteLine("error of some sorts");
-                    var dlg = new MessageDialog(array["message"].ToString());
-                    dlg.Title = "Something went wrong: " + array["code"];
-                    dlg.Commands.Add(new UICommand("Dismiss", null, "1"));
-                    var op = await dlg.ShowAsync();
-                }
-
-            } else {
-
-                // file is null
-
-            }
+            pivot_snap.SelectedIndex = 2;
 
         }
 
@@ -640,6 +698,52 @@ namespace PicLoc
             dt.Tick += dt_tick;
             dt.Interval = new TimeSpan(0, 0, 1);
             dt.Start();
+        }
+
+        private void pivot_settings_Tapped(object sender, TappedRoutedEventArgs e)
+        {
+            try
+            {
+                var vault2 = new PasswordVault();
+                PasswordCredential cred = vault2.Retrieve("PicLoc", "autoLogin");
+                if (cred != null)
+                {
+                    vault2.Remove(cred);
+                    Application.Current.Exit();
+                }
+            } catch (Exception ex)
+            {
+
+            }
+        }
+
+        private async void list_friends_Tapped(object sender, TappedRoutedEventArgs e)
+        {
+            if (isSendingSnap)
+            {
+
+                Friend friendToSendSnapTo = (Friend)((ListView)sender).SelectedItem;
+                snapTemp_user = friendToSendSnapTo.username;
+
+                snap_action.Text = "Waiting to select snap duration";
+
+                button1.Visibility = Visibility.Visible;
+                slider.Visibility = Visibility.Visible;
+
+            }
+
+            list_friends.SelectedIndex = -1;
+
+        }
+
+        private void button1_Tapped(object sender, TappedRoutedEventArgs e)
+        {
+            if (isSendingSnap) {
+                button1.Visibility = Visibility.Collapsed;
+                slider.Visibility = Visibility.Collapsed;
+                sendSnap(snapTemp_user, snapTemp_snap, snapTemp_deviceid, (int)slider.Value);
+                isSendingSnap = false;
+            }
         }
     }
 
