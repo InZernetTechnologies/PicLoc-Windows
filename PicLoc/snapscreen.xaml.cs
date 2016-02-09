@@ -16,10 +16,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Windows.Storage.Pickers;
 using Windows.Storage.Streams;
-using Windows.Foundation.Metadata;
-using Windows.UI.ViewManagement;
-using Windows.UI;
-using Windows.ApplicationModel.Core;
 using Windows.Networking.PushNotifications;
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=234238
 
@@ -58,13 +54,13 @@ namespace PicLoc
 
             if (IsMobile)
             {
-                pivot_snap_list.Margin = new Thickness(0, -50, 0, 0);
+                pivot_snap_list.Margin = new Thickness(0, -45, 0, 0);
                 pivot_snap_list.Header = null;
-                pivot_camera.Margin = new Thickness(0, -50, 0, 0);
+                pivot_camera.Margin = new Thickness(0, -45, 0, 0);
                 pivot_camera.Header = null;
-                pivot_friends.Margin = new Thickness(0, -50, 0, 0);
+                pivot_friends.Margin = new Thickness(0, -45, 0, 0);
                 pivot_friends.Header = null;
-                pivot_settings.Margin = new Thickness(0, -50, 0, 0);
+                pivot_settings.Margin = new Thickness(0, -45, 0, 0);
                 pivot_settings.Header = null;
             } else
             {
