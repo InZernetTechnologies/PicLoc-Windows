@@ -7,6 +7,24 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
+    <!--<Page.Transitions>
+        <TransitionCollection>
+            <ContentThemeTransition HorizontalOffset="0" VerticalOffset="0"/>
+        </TransitionCollection>
+    </Page.Transitions>-->
+
+    <Page.Transitions>
+        <TransitionCollection>
+            <AddDeleteThemeTransition/>
+            <NavigationThemeTransition>
+                <NavigationThemeTransition.DefaultNavigationTransitionInfo>
+                    <ContinuumNavigationTransitionInfo/>
+                </NavigationThemeTransition.DefaultNavigationTransitionInfo>
+            </NavigationThemeTransition>
+        </TransitionCollection>
+    </Page.Transitions>
+
+
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <Grid Background = "{ThemeResource ApplicationPageBackgroundThemeBrush}" >
             <Grid.ColumnDefinitions >
@@ -51,18 +69,18 @@
             <TextBox x:Name="username" Grid.Column="0" HorizontalAlignment="Stretch" Grid.Row="1" Text="" VerticalAlignment="Center" Margin="5, 0, 5, 0" Grid.ColumnSpan="2" BorderThickness="2" PlaceholderText="Username" IsSpellCheckEnabled="False" IsTextPredictionEnabled="False" />
             <TextBox x:Name="email" Grid.Column="2" HorizontalAlignment="Stretch" Grid.Row="1" Text="" VerticalAlignment="Center" Margin="5, 0, 5, 0" Grid.ColumnSpan="2" BorderThickness="2" PlaceholderText="e-mail" IsSpellCheckEnabled="False" IsTextPredictionEnabled="False" />
 
-            <PasswordBox x:Name="password" Grid.Column="0" HorizontalAlignment="Stretch" Grid.Row="2" VerticalAlignment="Center" Margin="5, 0, 5, 0" Grid.ColumnSpan="2" PlaceholderText="Password"/>
-            <PasswordBox x:Name="password_repeat" Grid.Column="2" HorizontalAlignment="Stretch" Grid.Row="2" VerticalAlignment="Center" Margin="5, 0, 5, 0" Grid.ColumnSpan="2" PlaceholderText="Repeat Password"/>
+            <PasswordBox x:Name="password" Grid.Column="0" HorizontalAlignment="Stretch" Grid.Row="2" VerticalAlignment="Center" Margin="5,0,5,35" Grid.ColumnSpan="2" PlaceholderText="Password"/>
+            <PasswordBox x:Name="password_repeat" Grid.Column="0" HorizontalAlignment="Stretch" Grid.Row="2" VerticalAlignment="Center" Margin="5,35,5,0" Grid.ColumnSpan="2" PlaceholderText="Repeat Password"/>
 
-            <ComboBox x:Name="gender" Grid.ColumnSpan="2" HorizontalAlignment="Stretch" Grid.Row="3" Margin="5, 0, 5, 0" VerticalAlignment="Center">
+            <ComboBox x:Name="gender" Grid.ColumnSpan="2" HorizontalAlignment="Stretch" PlaceholderText="Gender" Grid.Column="2" Grid.Row="2" Margin="5, 0, 5, 0" VerticalAlignment="Center">
                 <ComboBoxItem Content="male"/>
                 <ComboBoxItem Content="female"/>
                 <ComboBoxItem Content="prefer not to specify"/>
             </ComboBox>
 
-            <CalendarDatePicker Name="birthdate" Grid.Column="2" HorizontalAlignment="Stretch" Grid.Row="3" VerticalAlignment="Center" Margin="5, 0, 5, 0" Grid.ColumnSpan="2" PlaceholderText="Birthdate" DateFormat="{}{year.full}/{month.integer}/{day.integer}" />
-
-            <Button x:Name="signup_button" Content="SIGN UP" HorizontalAlignment="Stretch" Grid.Row="4" Grid.Column="0" VerticalAlignment="Stretch" Grid.ColumnSpan="4" ClickMode="Press" FontWeight="Bold" FontSize="26.667" FontFamily="Consolas" Tapped="signup_button_Tapped" Click="signup_button_Click" />
+            <DatePicker Name="birthdate" Grid.ColumnSpan="4" HorizontalAlignment="Stretch" Margin="5, 0, 5, 0" Grid.Row="3" VerticalAlignment="Center" DayFormat="{}{day.integer}" Width="100" MonthFormat="{}{month.integer}" YearFormat="{}{year.full(4)}"/>
+            
+            <Button x:Name="signup_button" Content="SIGN UP" HorizontalAlignment="Stretch" Grid.Row="4" Grid.Column="0" VerticalAlignment="Stretch" Grid.ColumnSpan="4" ClickMode="Press" FontWeight="Bold" FontSize="26.667" FontFamily="Consolas" Tapped="signup_button_Tapped" />
 
         </Grid>
     </Grid>
