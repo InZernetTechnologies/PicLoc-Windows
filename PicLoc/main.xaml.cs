@@ -14,6 +14,8 @@ using Windows.UI.Xaml.Navigation;
 using Windows.Security.Cryptography;
 using Windows.Security.Cryptography.Core;
 using Windows.Storage.Streams;
+using Windows.System.Profile;
+using Windows.ApplicationModel;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=234238
 
@@ -60,7 +62,17 @@ namespace PicLoc
 
             }*/
 
-            // !!! Clear device ID //
+            // !!! Clear device ID \\
+
+            string deviceFamilyVersion = AnalyticsInfo.VersionInfo.DeviceFamilyVersion;
+            ulong version = ulong.Parse(deviceFamilyVersion);
+            ulong major = (version & 0xFFFF000000000000L) >> 48;
+            ulong minor = (version & 0x0000FFFF00000000L) >> 32;
+            ulong build = (version & 0x00000000FFFF0000L) >> 16;
+            ulong revision = (version & 0x000000000000FFFFL);
+            var osVersion = $"{major}.{minor}.{build}.{revision}";
+
+            Debug.WriteLine("Version: " + settings.APP_version);
 
             checkDeviceID();
             autoLogin();
@@ -288,9 +300,11 @@ namespace PicLoc
                 Debug.WriteLine("SAved autologin");
 
                 snapscreen.json = responseString;
-                Frame.Navigate(typeof(snapscreen));
+
                 static_pass = array["token"].ToString();
                 static_user = username;
+
+                Frame.Navigate(typeof(snapscreen));
                 /*
                 var dlg = new MessageDialog("Good login: " + responseString);
                 dlg.Commands.Add(new UICommand("Dismiss", null, "1"));
@@ -313,7 +327,7 @@ namespace PicLoc
 
         private void button_signup_Click(object sender, RoutedEventArgs e)
         {
-            
+            Frame.Navigate(typeof(signup));
         }
 
         private void button_login_Click(object sender, RoutedEventArgs e)
