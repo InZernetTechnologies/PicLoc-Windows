@@ -26,6 +26,10 @@ namespace PicLoc
 
         Snap p_current_snap;
 
+        public static bool fromLogin;
+
+        helper h = new helper();
+
         bool isSendingSnap;
 
         String snapTemp_user;
@@ -62,18 +66,25 @@ namespace PicLoc
                 pivot_friends.Header = null;
                 pivot_settings.Margin = new Thickness(0, -45, 0, 0);
                 pivot_settings.Header = null;
-            } else
+            }
+            else
             {
-                
+
             }
 
             // !! see if on mobile !!
 
             createImageFolder();
 
-            set_snaps();
-            set_friends(); //rename set function
-
+            if (!fromLogin) {
+                getSnaps();
+                getFriends();
+            } else
+            {
+                set_snaps();
+                set_friends();
+                fromLogin = false;
+            }
         }
 
         public async void getPNChannel()
@@ -132,8 +143,12 @@ namespace PicLoc
             {
                 if (array["friends"] == null)
                 {
+                    Debug.WriteLine("Friends is null");
                     list_friends.ItemsSource = friendList;
                     return;
+                } else
+                {
+                    Debug.WriteLine("Friends not null: " + array["friends"].ToString());
                 }
             }
             catch (Exception ex)
@@ -356,23 +371,7 @@ namespace PicLoc
             String responseString = null;
 
             Debug.WriteLine("Get snap: " + current_snap.id);
-            var vault = new PasswordVault();
-            PasswordCredential cred;
-            String deviceid = null;
-            try
-            {
-                cred = vault.Retrieve("device_id", "device_id");
-                if (cred != null)
-                {
-                    // we have a device id
-                    Debug.WriteLine("Device ID for login: " + cred.Password);
-                    deviceid = cred.Password;
-                }
-            }
-            catch (Exception ex)
-            {
-
-            }
+            String deviceid = h.getDeviceID();
 
             snap_progress.Value = 0;
 
@@ -560,26 +559,63 @@ namespace PicLoc
             pivot_snap.SelectedIndex = 2;
         }
 
-        private async void getSnaps()
+        public async void getFriends()
         {
+            String deviceid = h.getDeviceID();
 
-            var vault = new PasswordVault();
-            PasswordCredential cred;
-            String deviceid = null;
+            var values = new Dictionary<string, string>
+            {
+                { "username", main.static_user },
+                { "password", main.static_pass },
+                { "device_id", deviceid.ToString() }
+            };
+
+            var client = new HttpClient();
+
+            var content = new HttpFormUrlEncodedContent(values);
+
+            client.DefaultRequestHeaders.Add("device", "WindowsClient/" + settings.APP_version);
+
+            var response = await client.PostAsync(new Uri(settings.API + "/get_friends/"), content);
+
+            var responseString = await response.Content.ReadAsStringAsync();
+
+            Debug.WriteLine("getSnaps response: " + responseString);
+
+            JObject array = null;
+
             try
             {
-                cred = vault.Retrieve("device_id", "device_id");
-                if (cred != null)
-                {
-                    // we have a device id
-                    Debug.WriteLine("Device ID for login: " + cred.Password);
-                    deviceid = cred.Password;
-                }
+                array = JObject.Parse(responseString);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-
+                var dlg = new MessageDialog("Unexpected response from server: " + responseString);
+                dlg.Commands.Add(new UICommand("Dismiss", null, "1"));
+                var op = await dlg.ShowAsync();
+                return;
             }
+
+            Debug.WriteLine("getSnaps: " + array["status"].ToString());
+
+            if (array["status"].ToString() == "True")
+            {
+                json = responseString;
+                list_friends.ItemsSource = null;
+                set_friends();
+            }
+            else
+            {
+                var dlg = new MessageDialog(array["message"].ToString());
+                dlg.Title = "Something went wrong: " + array["code"];
+                dlg.Commands.Add(new UICommand("Dismiss", null, "1"));
+                var op = await dlg.ShowAsync();
+            }
+        }
+
+        private async void getSnaps()
+        {
+            String deviceid = h.getDeviceID();
 
             var values = new Dictionary<string, string>
             {
@@ -639,24 +675,6 @@ namespace PicLoc
                 return;
             }
 
-            var vault = new PasswordVault();
-            PasswordCredential cred;
-            String deviceid = null;
-            try
-            {
-                cred = vault.Retrieve("device_id", "device_id");
-                if (cred != null)
-                {
-                    // we have a device id
-                    Debug.WriteLine("Device ID for login: " + cred.Password);
-                    deviceid = cred.Password;
-                }
-            }
-            catch (Exception ex)
-            {
-
-            }
-
 
             FileOpenPicker openPicker = new FileOpenPicker();
             openPicker.ViewMode = PickerViewMode.Thumbnail;
@@ -669,9 +687,11 @@ namespace PicLoc
             snap_action.Text = "Waiting to select friend";
             xaml_topBar.Visibility = Visibility;
 
-            snapTemp_deviceid = deviceid;
+            snapTemp_deviceid = h.getDeviceID();
             snapTemp_snap = file;
             isSendingSnap = true;
+
+            list_friends.SelectionMode = ListViewSelectionMode.Multiple;
 
             pivot_snap.SelectedIndex = 2;
 
@@ -696,7 +716,123 @@ namespace PicLoc
             dt.Start();
         }
 
-        private void pivot_settings_Tapped(object sender, TappedRoutedEventArgs e)
+        private async void list_friends_Tapped(object sender, TappedRoutedEventArgs e)
+        {
+            if (isSendingSnap)
+            {
+                snap_action.Text = "Waiting to select snap duration";
+
+                button1.Visibility = Visibility.Visible;
+                slider.Visibility = Visibility.Visible;
+
+            } else if (((Friend)((ListView)sender).SelectedItem).status == "pending")
+            {
+
+                var dlg = new MessageDialog("Accept [" + ((Friend)((ListView)sender).SelectedItem).username + "] ?");
+                dlg.Title = "Accept friend?";
+                dlg.Commands.Add(new UICommand("Yes", null, "1"));
+                dlg.Commands.Add(new UICommand("No", null, "2"));
+                var op = await dlg.ShowAsync();
+
+                if (op.Label == "Yes")
+                {
+                    Debug.WriteLine("Clicked YES");
+                    String deviceid = h.getDeviceID();
+
+                    var values = new Dictionary<string, string>
+                    {
+                        { "username", main.static_user },
+                        { "password", main.static_pass },
+                        { "device_id", deviceid.ToString() },
+                        { "friend", ((Friend)((ListView)sender).SelectedItem).username }
+                    };
+
+                    var client = new HttpClient();
+
+                    var content = new HttpFormUrlEncodedContent(values);
+
+                    client.DefaultRequestHeaders.Add("device", "WindowsClient/" + settings.APP_version);
+
+                    var response = await client.PostAsync(new Uri(settings.API + "/accept_friend/"), content);
+
+                    var responseString = await response.Content.ReadAsStringAsync();
+
+                    Debug.WriteLine("Login response: " + responseString);
+
+                    JObject array = null;
+
+                    try
+                    {
+                        array = JObject.Parse(responseString);
+                    }
+                    catch (Exception ex)
+                    {
+                        var dlg1 = new MessageDialog("Unexpected response from server: " + responseString);
+                        dlg1.Commands.Add(new UICommand("Dismiss", null, "8"));
+                        var op1 = await dlg1.ShowAsync();
+                        return;
+                    }
+
+                    Debug.WriteLine(array["status"].ToString());
+
+                    if (array["status"].ToString() == "True")
+                    {
+
+                        getFriends();
+
+                        var dlg55 = new MessageDialog("Accepted [" + ((Friend)((ListView)sender).SelectedItem).username + "]");
+                        dlg55.Title = "Successfully accepted";
+                        dlg55.Commands.Add(new UICommand("Dismiss", null, "6"));
+                        var op55 = await dlg55.ShowAsync();
+
+
+
+                    }
+                    else
+                    {
+                        var dlg2 = new MessageDialog(array["message"].ToString());
+                        dlg2.Title = "Something went wrong: " + array["code"];
+                        dlg2.Commands.Add(new UICommand("Dismiss", null, "7"));
+                        var op2 = await dlg2.ShowAsync();
+                    }
+
+                } else
+                {
+                    list_friends.SelectedIndex = -1;
+                }
+
+            } else
+            {
+                list_friends.SelectedIndex = -1;
+            }
+
+        }
+
+        private void button1_Tapped(object sender, TappedRoutedEventArgs e)
+        {
+            if (isSendingSnap) {
+
+                JArray ja = new JArray();
+
+                foreach (var a in ((ListView)list_friends).SelectedItems)
+                {
+                    Friend friendToSendSnapTo = (Friend)(a);
+                    ja.Add(friendToSendSnapTo.username);
+                }
+
+                Debug.WriteLine("JSON: " + ja.ToString());
+
+                snapTemp_user = ja.ToString();
+
+                button1.Visibility = Visibility.Collapsed;
+                slider.Visibility = Visibility.Collapsed;
+                sendSnap(snapTemp_user, snapTemp_snap, snapTemp_deviceid, (int)slider.Value);
+                isSendingSnap = false;
+                list_friends.SelectionMode = ListViewSelectionMode.Single;
+            }
+        }
+
+        private void logout_Tapped(object sender, TappedRoutedEventArgs e)
         {
             try
             {
@@ -707,39 +843,16 @@ namespace PicLoc
                     vault2.Remove(cred);
                     Application.Current.Exit();
                 }
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
 
             }
         }
 
-        private async void list_friends_Tapped(object sender, TappedRoutedEventArgs e)
+        private void buttonAddFriend_Tapped(object sender, TappedRoutedEventArgs e)
         {
-            if (isSendingSnap)
-            {
-
-                Friend friendToSendSnapTo = (Friend)((ListView)sender).SelectedItem;
-                snapTemp_user = friendToSendSnapTo.username;
-
-                snap_action.Text = "Waiting to select snap duration";
-
-                button1.Visibility = Visibility.Visible;
-                slider.Visibility = Visibility.Visible;
-
-            }
-
-            list_friends.SelectedIndex = -1;
-
-        }
-
-        private void button1_Tapped(object sender, TappedRoutedEventArgs e)
-        {
-            if (isSendingSnap) {
-                button1.Visibility = Visibility.Collapsed;
-                slider.Visibility = Visibility.Collapsed;
-                sendSnap(snapTemp_user, snapTemp_snap, snapTemp_deviceid, (int)slider.Value);
-                isSendingSnap = false;
-            }
+            Frame.Navigate(typeof(add_friend));
         }
     }
 

@@ -107,7 +107,7 @@
             </PivotItem>
             <PivotItem Header="Friend List" Name="pivot_friends">
                 <Grid>
-                    <ListView x:Name="list_friends" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" IsSynchronizedWithCurrentItem="False" SelectionMode="Extended" Tapped="list_friends_Tapped">
+                    <ListView x:Name="list_friends" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Tapped="list_friends_Tapped">
                         <ListView.ItemContainerStyle>
                             <Style x:Name="lvi_friends" TargetType="ListViewItem">
                                 <Setter Property="HorizontalContentAlignment" Value="Stretch" />
@@ -119,13 +119,15 @@
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto" />
                                         <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
                                     </Grid.RowDefinitions>
                                     <Grid.ColumnDefinitions>
                                         <!--<ColumnDefinition Width=".50*" />
                                         <ColumnDefinition Width="5*" />-->
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Row="0" FontSize="24" Text="{Binding username}" />
-                                    <TextBlock Grid.Row="1" FontSize="14" Text="{Binding display_name}"></TextBlock>
+                                    <TextBlock Grid.Row="1" FontSize="14" HorizontalAlignment="Right" Text="{Binding status}" />
+                                    <TextBlock Grid.Row="2" FontSize="14" Text="{Binding display_name}" />
                                 </Grid>
                             </DataTemplate>
                         </ListView.ItemTemplate>
@@ -134,8 +136,11 @@
                     <Button x:Name="button1" Content="Send snap" HorizontalAlignment="Right"  VerticalAlignment="Top" Height="30" Width="100" Tapped="button1_Tapped" Visibility="Collapsed"/>
                 </Grid>
             </PivotItem>
-            <PivotItem Header="Settings" Name="pivot_settings" Tapped="pivot_settings_Tapped">
-                <Button x:Name="button" Content="Log out" HorizontalAlignment="Left" Margin="90,123,0,0" VerticalAlignment="Top"/>
+            <PivotItem Header="Settings" Name="pivot_settings">
+                <Grid>
+                    <Button x:Name="logout" Content="Log out" HorizontalAlignment="Left" Margin="90,123,0,0" VerticalAlignment="Top" Tapped="logout_Tapped"/>
+                    <Button x:Name="buttonAddFriend" Content="Add Friend" HorizontalAlignment="Left" Margin="204,123,0,0" VerticalAlignment="Top" Tapped="buttonAddFriend_Tapped"/>
+                </Grid>
             </PivotItem>
         </Pivot>
 
