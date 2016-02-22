@@ -16,6 +16,12 @@ namespace PicLoc
         private ProgressBar _progressBar;
         helper h = new helper();
 
+        private void resetProgressBar()
+        {
+            _progressBar.IsIndeterminate = true;
+            _progressBar.Visibility = Windows.UI.Xaml.Visibility.Collapsed;
+        }
+
         public async Task<String> login(String username, String password, ProgressBar progressBar, Boolean useToken = false)
         {
             HttpResponseMessage response = null;
@@ -57,6 +63,7 @@ namespace PicLoc
             finally
             {
                 Debug.WriteLine("login | Completed");
+                resetProgressBar();
             }
 
             return responseString;
@@ -113,6 +120,7 @@ namespace PicLoc
             }
             finally {
                 Debug.WriteLine("register | Completed");
+                resetProgressBar();
             }
 
             return responseString;
@@ -152,6 +160,48 @@ namespace PicLoc
             finally
             {
                 Debug.WriteLine("device_id | Completed");
+            }
+
+            return responseString;
+        }
+
+        public async Task<String> getSnaps(String username, String password, ProgressBar progressBar)
+        {
+            HttpResponseMessage response = null;
+            String responseString = null;
+
+            _progressBar = progressBar;
+
+            try
+            {
+                String device_id = h.getDeviceID();
+                var values = new Dictionary<string, string>
+            {
+                { "username", username },
+                { "password", password },
+                { "device_id", device_id }
+            };
+
+                HttpFormUrlEncodedContent formContent = new HttpFormUrlEncodedContent(values);
+
+                IProgress<HttpProgress> progress = new Progress<HttpProgress>(ProgressHandler);
+                _progressBar.Visibility = Windows.UI.Xaml.Visibility.Visible;
+                response = await httpClient.PostAsync(new Uri(settings.API + "/get_snaps/"), formContent).AsTask(cts.Token, progress);
+                responseString = await response.Content.ReadAsStringAsync();
+                Debug.WriteLine("getSnaps | responseString: " + responseString);
+            }
+            catch (TaskCanceledException)
+            {
+                Debug.WriteLine("getSnaps | Canceled");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("getSnaps | Error: " + ex.StackTrace);
+            }
+            finally
+            {
+                Debug.WriteLine("getSnaps | Completed");
+                resetProgressBar();
             }
 
             return responseString;
