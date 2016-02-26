@@ -35,6 +35,7 @@ namespace PicLoc
 
         private async void startup()
         {
+            h.createImageFolder();
             if (h.getDeviceID() == "")
             {
                 String didJSON = await a.device_id(progress_bar);
@@ -47,33 +48,58 @@ namespace PicLoc
                     // failure
                 }
             }
+
+            if (h.getAutoLogin() != "")
+            {
+                textBox_username.Text = h.getAutoLogin();
+                passwordBox_password.Password = h.getPasswordFromUsername(h.getAutoLogin());
+                login(true);
+            }
         }
 
-        private async void button_signin_Tapped(object sender, Windows.UI.Xaml.Input.TappedRoutedEventArgs e)
+        private async void login(Boolean useToken)
+        {
+
+            // disable username and pass
+
+            String loginJSON = await a.login(textBox_username.Text, passwordBox_password.Password, progress_bar, useToken);
+            JObject jo = JObject.Parse(loginJSON);
+
+            if (jo["status"].ToString() == "True")
+            {
+                h.setAutoLogin(textBox_username.Text);
+                h.setUsernamePassword(textBox_username.Text, jo["token"].ToString());
+
+                static_pass = jo["token"].ToString();
+                static_user = textBox_username.Text;
+                //snapscreen.json = loginJSON;
+                //snapscreen.fromLogin = true;
+                //Frame.Navigate(typeof(snapscreen));
+
+                snap_screen.JSON = loginJSON;
+                snap_screen.fromLogin = true;
+                Frame.Navigate(typeof(snap_screen));
+
+            }
+            else
+            {
+                h.showSingleButtonDialog("Server error [" + jo["code"] + "]", ((jo["message"] != null) ? jo["message"].ToString() : "No server message was provided"), "Dismiss");
+            }
+
+            // enable user and pass
+
+        }
+
+        private void button_signin_Tapped(object sender, Windows.UI.Xaml.Input.TappedRoutedEventArgs e)
         {
             if (currentPage == "signin")
             {
                 Debug.WriteLine("main | Start signin");
-                String loginJSON = await a.login(textBox_username.Text, passwordBox_password.Password, progress_bar, false);
-                JObject jo = JObject.Parse(loginJSON);
 
-                if (jo["status"].ToString() == "True")
-                {
+                login(false);
 
-                    snapscreen.json = loginJSON;
-
-                    static_pass = jo["token"].ToString();
-                    static_user = textBox_username.Text;
-
-                    snapscreen.fromLogin = true;
-
-                    Frame.Navigate(typeof(snapscreen));
-                }
-                else
-                {
-                    h.showSingleButtonDialog("Server error [" + jo["code"] + "]", ((jo["message"].ToString() != "") ? jo["message"].ToString() : "No server message was provided"), "Dismiss");
-                }
-            } else
+            }
+            else
             {
                 main_signup.Visibility = Windows.UI.Xaml.Visibility.Collapsed;
                 main_signin.Visibility = Windows.UI.Xaml.Visibility.Visible;
@@ -95,7 +121,7 @@ namespace PicLoc
                 }
                 else
                 {
-                    h.showSingleButtonDialog("Server error [" + jo["code"] + "]", ((jo["message"].ToString() != "") ? jo["message"].ToString() : "No server message was provided"), "Dismiss");
+                    h.showSingleButtonDialog("Server error [" + jo["code"] + "]", ((jo["message"] != null) ? jo["message"].ToString() : "No server message was provided"), "Dismiss");
                 }
             }
             else

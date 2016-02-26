@@ -7,6 +7,17 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d" RequestedTheme="Default">
 
+    <Page.Transitions>
+        <TransitionCollection>
+            <AddDeleteThemeTransition/>
+            <NavigationThemeTransition>
+                <NavigationThemeTransition.DefaultNavigationTransitionInfo>
+                    <ContinuumNavigationTransitionInfo/>
+                </NavigationThemeTransition.DefaultNavigationTransitionInfo>
+            </NavigationThemeTransition>
+        </TransitionCollection>
+    </Page.Transitions>
+    
     <Page.Resources>
         <Style x:Key="textBox" TargetType="TextBox">
             <Setter Property="MinWidth" Value="{ThemeResource TextControlThemeMinWidth}"/>
@@ -539,7 +550,7 @@
                 <SolidColorBrush Color="#FF4E4E50" Opacity="0"/>
             </Button.Background>
         </Button>
-        <ProgressBar Name="progress_bar" Grid.ColumnSpan="3" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Value="50" IsIndeterminate="True" Opacity="0.5" Visibility="Collapsed"/>
+        <ProgressBar Name="progress_bar" Grid.ColumnSpan="4" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Value="50" IsIndeterminate="True" Opacity="0.5" Visibility="Collapsed"/>
     </Grid>
 </Page>
 
