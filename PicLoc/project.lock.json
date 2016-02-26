@@ -3,7 +3,7 @@
   "version": 1,
   "targets": {
     "UAP,Version=v10.0": {
-      "Microsoft.ApplicationInsights/1.0.0": {
+      "Microsoft.ApplicationInsights/1.2.3": {
         "compile": {
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.dll": {}
         },
@@ -11,9 +11,9 @@
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.dll": {}
         }
       },
-      "Microsoft.ApplicationInsights.PersistenceChannel/1.0.0": {
+      "Microsoft.ApplicationInsights.PersistenceChannel/1.2.3": {
         "dependencies": {
-          "Microsoft.ApplicationInsights": "[1.0.0, )"
+          "Microsoft.ApplicationInsights": "[1.2.3, )"
         },
         "compile": {
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.PersistenceChannel.dll": {}
@@ -22,10 +22,10 @@
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.PersistenceChannel.dll": {}
         }
       },
-      "Microsoft.ApplicationInsights.WindowsApps/1.0.0": {
+      "Microsoft.ApplicationInsights.WindowsApps/1.1.1": {
         "dependencies": {
-          "Microsoft.ApplicationInsights": "[1.0.0, )",
-          "Microsoft.ApplicationInsights.PersistenceChannel": "[1.0.0, )"
+          "Microsoft.ApplicationInsights": "[1.2.3, 1.2.3]",
+          "Microsoft.ApplicationInsights.PersistenceChannel": "[1.2.3, 1.2.3]"
         },
         "compile": {
           "lib/win81/Microsoft.ApplicationInsights.Extensibility.Windows.dll": {}
@@ -238,6 +238,19 @@
         },
         "runtime": {
           "lib/portable-net45+wp80+win8+wpa81+dnxcore50/Newtonsoft.Json.dll": {}
+        }
+      },
+      "PullToRefresh.UWP/0.3.3": {
+        "compile": {
+          "ref/uap10.0/PullToRefresh.UWP.winmd": {}
+        }
+      },
+      "PullToRefreshListView/1.0.0": {
+        "compile": {
+          "lib/wpa81/Custom.Controls.PullToRefreshListView.dll": {}
+        },
+        "runtime": {
+          "lib/wpa81/Custom.Controls.PullToRefreshListView.dll": {}
         }
       },
       "System.AppContext/4.0.0": {
@@ -1577,7 +1590,7 @@
       }
     },
     "UAP,Version=v10.0/win10-arm": {
-      "Microsoft.ApplicationInsights/1.0.0": {
+      "Microsoft.ApplicationInsights/1.2.3": {
         "compile": {
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.dll": {}
         },
@@ -1585,9 +1598,9 @@
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.dll": {}
         }
       },
-      "Microsoft.ApplicationInsights.PersistenceChannel/1.0.0": {
+      "Microsoft.ApplicationInsights.PersistenceChannel/1.2.3": {
         "dependencies": {
-          "Microsoft.ApplicationInsights": "[1.0.0, )"
+          "Microsoft.ApplicationInsights": "[1.2.3, )"
         },
         "compile": {
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.PersistenceChannel.dll": {}
@@ -1596,10 +1609,10 @@
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.PersistenceChannel.dll": {}
         }
       },
-      "Microsoft.ApplicationInsights.WindowsApps/1.0.0": {
+      "Microsoft.ApplicationInsights.WindowsApps/1.1.1": {
         "dependencies": {
-          "Microsoft.ApplicationInsights": "[1.0.0, )",
-          "Microsoft.ApplicationInsights.PersistenceChannel": "[1.0.0, )"
+          "Microsoft.ApplicationInsights": "[1.2.3, 1.2.3]",
+          "Microsoft.ApplicationInsights.PersistenceChannel": "[1.2.3, 1.2.3]"
         },
         "compile": {
           "lib/win81/Microsoft.ApplicationInsights.Extensibility.Windows.dll": {}
@@ -1855,6 +1868,19 @@
         },
         "runtime": {
           "lib/portable-net45+wp80+win8+wpa81+dnxcore50/Newtonsoft.Json.dll": {}
+        }
+      },
+      "PullToRefresh.UWP/0.3.3": {
+        "compile": {
+          "ref/uap10.0/PullToRefresh.UWP.winmd": {}
+        }
+      },
+      "PullToRefreshListView/1.0.0": {
+        "compile": {
+          "lib/wpa81/Custom.Controls.PullToRefreshListView.dll": {}
+        },
+        "runtime": {
+          "lib/wpa81/Custom.Controls.PullToRefreshListView.dll": {}
         }
       },
       "System.AppContext/4.0.0": {
@@ -3241,7 +3267,7 @@
       }
     },
     "UAP,Version=v10.0/win10-arm-aot": {
-      "Microsoft.ApplicationInsights/1.0.0": {
+      "Microsoft.ApplicationInsights/1.2.3": {
         "compile": {
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.dll": {}
         },
@@ -3249,9 +3275,9 @@
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.dll": {}
         }
       },
-      "Microsoft.ApplicationInsights.PersistenceChannel/1.0.0": {
+      "Microsoft.ApplicationInsights.PersistenceChannel/1.2.3": {
         "dependencies": {
-          "Microsoft.ApplicationInsights": "[1.0.0, )"
+          "Microsoft.ApplicationInsights": "[1.2.3, )"
         },
         "compile": {
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.PersistenceChannel.dll": {}
@@ -3260,10 +3286,10 @@
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.PersistenceChannel.dll": {}
         }
       },
-      "Microsoft.ApplicationInsights.WindowsApps/1.0.0": {
+      "Microsoft.ApplicationInsights.WindowsApps/1.1.1": {
         "dependencies": {
-          "Microsoft.ApplicationInsights": "[1.0.0, )",
-          "Microsoft.ApplicationInsights.PersistenceChannel": "[1.0.0, )"
+          "Microsoft.ApplicationInsights": "[1.2.3, 1.2.3]",
+          "Microsoft.ApplicationInsights.PersistenceChannel": "[1.2.3, 1.2.3]"
         },
         "compile": {
           "lib/win81/Microsoft.ApplicationInsights.Extensibility.Windows.dll": {}
@@ -3505,6 +3531,19 @@
         },
         "runtime": {
           "lib/portable-net45+wp80+win8+wpa81+dnxcore50/Newtonsoft.Json.dll": {}
+        }
+      },
+      "PullToRefresh.UWP/0.3.3": {
+        "compile": {
+          "ref/uap10.0/PullToRefresh.UWP.winmd": {}
+        }
+      },
+      "PullToRefreshListView/1.0.0": {
+        "compile": {
+          "lib/wpa81/Custom.Controls.PullToRefreshListView.dll": {}
+        },
+        "runtime": {
+          "lib/wpa81/Custom.Controls.PullToRefreshListView.dll": {}
         }
       },
       "System.AppContext/4.0.0": {
@@ -4877,7 +4916,7 @@
       }
     },
     "UAP,Version=v10.0/win10-x64": {
-      "Microsoft.ApplicationInsights/1.0.0": {
+      "Microsoft.ApplicationInsights/1.2.3": {
         "compile": {
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.dll": {}
         },
@@ -4885,9 +4924,9 @@
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.dll": {}
         }
       },
-      "Microsoft.ApplicationInsights.PersistenceChannel/1.0.0": {
+      "Microsoft.ApplicationInsights.PersistenceChannel/1.2.3": {
         "dependencies": {
-          "Microsoft.ApplicationInsights": "[1.0.0, )"
+          "Microsoft.ApplicationInsights": "[1.2.3, )"
         },
         "compile": {
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.PersistenceChannel.dll": {}
@@ -4896,10 +4935,10 @@
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.PersistenceChannel.dll": {}
         }
       },
-      "Microsoft.ApplicationInsights.WindowsApps/1.0.0": {
+      "Microsoft.ApplicationInsights.WindowsApps/1.1.1": {
         "dependencies": {
-          "Microsoft.ApplicationInsights": "[1.0.0, )",
-          "Microsoft.ApplicationInsights.PersistenceChannel": "[1.0.0, )"
+          "Microsoft.ApplicationInsights": "[1.2.3, 1.2.3]",
+          "Microsoft.ApplicationInsights.PersistenceChannel": "[1.2.3, 1.2.3]"
         },
         "compile": {
           "lib/win81/Microsoft.ApplicationInsights.Extensibility.Windows.dll": {}
@@ -5160,6 +5199,19 @@
         },
         "runtime": {
           "lib/portable-net45+wp80+win8+wpa81+dnxcore50/Newtonsoft.Json.dll": {}
+        }
+      },
+      "PullToRefresh.UWP/0.3.3": {
+        "compile": {
+          "ref/uap10.0/PullToRefresh.UWP.winmd": {}
+        }
+      },
+      "PullToRefreshListView/1.0.0": {
+        "compile": {
+          "lib/wpa81/Custom.Controls.PullToRefreshListView.dll": {}
+        },
+        "runtime": {
+          "lib/wpa81/Custom.Controls.PullToRefreshListView.dll": {}
         }
       },
       "System.AppContext/4.0.0": {
@@ -6546,7 +6598,7 @@
       }
     },
     "UAP,Version=v10.0/win10-x64-aot": {
-      "Microsoft.ApplicationInsights/1.0.0": {
+      "Microsoft.ApplicationInsights/1.2.3": {
         "compile": {
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.dll": {}
         },
@@ -6554,9 +6606,9 @@
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.dll": {}
         }
       },
-      "Microsoft.ApplicationInsights.PersistenceChannel/1.0.0": {
+      "Microsoft.ApplicationInsights.PersistenceChannel/1.2.3": {
         "dependencies": {
-          "Microsoft.ApplicationInsights": "[1.0.0, )"
+          "Microsoft.ApplicationInsights": "[1.2.3, )"
         },
         "compile": {
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.PersistenceChannel.dll": {}
@@ -6565,10 +6617,10 @@
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.PersistenceChannel.dll": {}
         }
       },
-      "Microsoft.ApplicationInsights.WindowsApps/1.0.0": {
+      "Microsoft.ApplicationInsights.WindowsApps/1.1.1": {
         "dependencies": {
-          "Microsoft.ApplicationInsights": "[1.0.0, )",
-          "Microsoft.ApplicationInsights.PersistenceChannel": "[1.0.0, )"
+          "Microsoft.ApplicationInsights": "[1.2.3, 1.2.3]",
+          "Microsoft.ApplicationInsights.PersistenceChannel": "[1.2.3, 1.2.3]"
         },
         "compile": {
           "lib/win81/Microsoft.ApplicationInsights.Extensibility.Windows.dll": {}
@@ -6810,6 +6862,19 @@
         },
         "runtime": {
           "lib/portable-net45+wp80+win8+wpa81+dnxcore50/Newtonsoft.Json.dll": {}
+        }
+      },
+      "PullToRefresh.UWP/0.3.3": {
+        "compile": {
+          "ref/uap10.0/PullToRefresh.UWP.winmd": {}
+        }
+      },
+      "PullToRefreshListView/1.0.0": {
+        "compile": {
+          "lib/wpa81/Custom.Controls.PullToRefreshListView.dll": {}
+        },
+        "runtime": {
+          "lib/wpa81/Custom.Controls.PullToRefreshListView.dll": {}
         }
       },
       "System.AppContext/4.0.0": {
@@ -8182,7 +8247,7 @@
       }
     },
     "UAP,Version=v10.0/win10-x86": {
-      "Microsoft.ApplicationInsights/1.0.0": {
+      "Microsoft.ApplicationInsights/1.2.3": {
         "compile": {
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.dll": {}
         },
@@ -8190,9 +8255,9 @@
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.dll": {}
         }
       },
-      "Microsoft.ApplicationInsights.PersistenceChannel/1.0.0": {
+      "Microsoft.ApplicationInsights.PersistenceChannel/1.2.3": {
         "dependencies": {
-          "Microsoft.ApplicationInsights": "[1.0.0, )"
+          "Microsoft.ApplicationInsights": "[1.2.3, )"
         },
         "compile": {
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.PersistenceChannel.dll": {}
@@ -8201,10 +8266,10 @@
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.PersistenceChannel.dll": {}
         }
       },
-      "Microsoft.ApplicationInsights.WindowsApps/1.0.0": {
+      "Microsoft.ApplicationInsights.WindowsApps/1.1.1": {
         "dependencies": {
-          "Microsoft.ApplicationInsights": "[1.0.0, )",
-          "Microsoft.ApplicationInsights.PersistenceChannel": "[1.0.0, )"
+          "Microsoft.ApplicationInsights": "[1.2.3, 1.2.3]",
+          "Microsoft.ApplicationInsights.PersistenceChannel": "[1.2.3, 1.2.3]"
         },
         "compile": {
           "lib/win81/Microsoft.ApplicationInsights.Extensibility.Windows.dll": {}
@@ -8465,6 +8530,19 @@
         },
         "runtime": {
           "lib/portable-net45+wp80+win8+wpa81+dnxcore50/Newtonsoft.Json.dll": {}
+        }
+      },
+      "PullToRefresh.UWP/0.3.3": {
+        "compile": {
+          "ref/uap10.0/PullToRefresh.UWP.winmd": {}
+        }
+      },
+      "PullToRefreshListView/1.0.0": {
+        "compile": {
+          "lib/wpa81/Custom.Controls.PullToRefreshListView.dll": {}
+        },
+        "runtime": {
+          "lib/wpa81/Custom.Controls.PullToRefreshListView.dll": {}
         }
       },
       "System.AppContext/4.0.0": {
@@ -9851,7 +9929,7 @@
       }
     },
     "UAP,Version=v10.0/win10-x86-aot": {
-      "Microsoft.ApplicationInsights/1.0.0": {
+      "Microsoft.ApplicationInsights/1.2.3": {
         "compile": {
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.dll": {}
         },
@@ -9859,9 +9937,9 @@
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.dll": {}
         }
       },
-      "Microsoft.ApplicationInsights.PersistenceChannel/1.0.0": {
+      "Microsoft.ApplicationInsights.PersistenceChannel/1.2.3": {
         "dependencies": {
-          "Microsoft.ApplicationInsights": "[1.0.0, )"
+          "Microsoft.ApplicationInsights": "[1.2.3, )"
         },
         "compile": {
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.PersistenceChannel.dll": {}
@@ -9870,10 +9948,10 @@
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.PersistenceChannel.dll": {}
         }
       },
-      "Microsoft.ApplicationInsights.WindowsApps/1.0.0": {
+      "Microsoft.ApplicationInsights.WindowsApps/1.1.1": {
         "dependencies": {
-          "Microsoft.ApplicationInsights": "[1.0.0, )",
-          "Microsoft.ApplicationInsights.PersistenceChannel": "[1.0.0, )"
+          "Microsoft.ApplicationInsights": "[1.2.3, 1.2.3]",
+          "Microsoft.ApplicationInsights.PersistenceChannel": "[1.2.3, 1.2.3]"
         },
         "compile": {
           "lib/win81/Microsoft.ApplicationInsights.Extensibility.Windows.dll": {}
@@ -10115,6 +10193,19 @@
         },
         "runtime": {
           "lib/portable-net45+wp80+win8+wpa81+dnxcore50/Newtonsoft.Json.dll": {}
+        }
+      },
+      "PullToRefresh.UWP/0.3.3": {
+        "compile": {
+          "ref/uap10.0/PullToRefresh.UWP.winmd": {}
+        }
+      },
+      "PullToRefreshListView/1.0.0": {
+        "compile": {
+          "lib/wpa81/Custom.Controls.PullToRefreshListView.dll": {}
+        },
+        "runtime": {
+          "lib/wpa81/Custom.Controls.PullToRefreshListView.dll": {}
         }
       },
       "System.AppContext/4.0.0": {
@@ -11488,8 +11579,8 @@
     }
   },
   "libraries": {
-    "Microsoft.ApplicationInsights/1.0.0": {
-      "sha512": "HZ47/thX57SOuIivSvIbsR6L9CCb/Yt3IyB2i4KHmmNlf3DO+lqFwWIKDdbDNWKX+qh0Rg20/JSMPK0dwUsYYw==",
+    "Microsoft.ApplicationInsights/1.2.3": {
+      "sha512": "a34atobxpucCTTX9VCD7aIu6Ydzry+Va7TxK2tTQcfaMvefGW4kUKtg9GHKIn19IaXe+A4oZt/GBqsOt5vQrBA==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -11503,27 +11594,29 @@
         "lib/wp8/Microsoft.ApplicationInsights.dll",
         "lib/wp8/Microsoft.ApplicationInsights.XML",
         "Microsoft.ApplicationInsights.nuspec",
-        "package/services/metadata/core-properties/b9e7bc7ab2454491af07046165ff01d0.psmdcp"
+        "package/services/metadata/core-properties/3b36eef276524f5d883c618d5fd8c500.psmdcp"
       ]
     },
-    "Microsoft.ApplicationInsights.PersistenceChannel/1.0.0": {
-      "sha512": "0qQXC+CtbyF2RPuld5pF74fxsnP6ml0LUnzQ6GL9AXXY64LPsLDsPUAymoUffo7LZvPDppZboTYX59TfVxKA7A==",
+    "Microsoft.ApplicationInsights.PersistenceChannel/1.2.3": {
+      "sha512": "5MGcvPQVaGlGyAVh9adg4sSkIVSYDKn+H3+YnZa9hi1gH/g6UsRt4HLc8vp/IxjlbmXbJyAB7dYJV/NHmAGAgA==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
         "_rels/.rels",
         "lib/net40/Microsoft.ApplicationInsights.PersistenceChannel.dll",
         "lib/net40/Microsoft.ApplicationInsights.PersistenceChannel.XML",
-        "lib/portable-win8+wpa81/Microsoft.ApplicationInsights.PersistenceChannel.XML",
+        "lib/net45/Microsoft.ApplicationInsights.PersistenceChannel.dll",
+        "lib/net45/Microsoft.ApplicationInsights.PersistenceChannel.XML",
         "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.PersistenceChannel.dll",
+        "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.PersistenceChannel.XML",
         "lib/wp8/Microsoft.ApplicationInsights.PersistenceChannel.dll",
         "lib/wp8/Microsoft.ApplicationInsights.PersistenceChannel.XML",
         "Microsoft.ApplicationInsights.PersistenceChannel.nuspec",
-        "package/services/metadata/core-properties/dc9ebba80e7343fdbd0a39a3cdeb672c.psmdcp"
+        "package/services/metadata/core-properties/f973733421c14c3594986b3f2c22213a.psmdcp"
       ]
     },
-    "Microsoft.ApplicationInsights.WindowsApps/1.0.0": {
-      "sha512": "fNCAjIwvbTV+G0dT14bgM5tptsqeSaKQaCrlq7QknOq1Xdm8ZmgsDYddMgXkvykyKLjWyU6fKuOpj6fsQJy+wQ==",
+    "Microsoft.ApplicationInsights.WindowsApps/1.1.1": {
+      "sha512": "Orj0UQrjQ2z0aWZZoexl734Ge7Q4oVev3VFSsk6t8l2kImrfJ1eygkJWtQ1d7u0kF6MLLrvUvsMSxo+0rgPiMQ==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -11535,7 +11628,7 @@
         "lib/wpa81/Microsoft.ApplicationInsights.Extensibility.Windows.dll",
         "lib/wpa81/Microsoft.ApplicationInsights.Extensibility.Windows.XML",
         "Microsoft.ApplicationInsights.WindowsApps.nuspec",
-        "package/services/metadata/core-properties/4f6f732debe548beaa1183418e8d65cc.psmdcp"
+        "package/services/metadata/core-properties/8265b8c93c244c80b4e8bce27f31849d.psmdcp"
       ]
     },
     "Microsoft.CSharp/4.0.0": {
@@ -12212,6 +12305,52 @@
         "Newtonsoft.Json.nuspec",
         "package/services/metadata/core-properties/cc8c591d554640789c6a6ef6456f7772.psmdcp",
         "tools/install.ps1"
+      ]
+    },
+    "PullToRefresh.UWP/0.3.3": {
+      "sha512": "3jM9lZQs/OinvRQcq0k633YzMJIy40BNEwK/SbTqXGmNveuFFdTezv5gaEI9LqLRJY8j/Ya5shPancrd5IZx/w==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "build/uap10.0/lib/win10-ARM/PullToRefresh.UWP.pri",
+        "build/uap10.0/lib/win10-ARM/PullToRefresh.UWP.winmd",
+        "build/uap10.0/lib/win10-ARM/PullToRefresh.UWP/Properties/PullToRefresh.UWP.rd.xml",
+        "build/uap10.0/lib/win10-ARM/PullToRefresh.UWP/PullToRefresh.UWP.xr.xml",
+        "build/uap10.0/lib/win10-ARM/PullToRefresh.UWP/Themes/Generic.xbf",
+        "build/uap10.0/lib/win10-x64/PullToRefresh.UWP.pri",
+        "build/uap10.0/lib/win10-x64/PullToRefresh.UWP.winmd",
+        "build/uap10.0/lib/win10-x64/PullToRefresh.UWP/Properties/PullToRefresh.UWP.rd.xml",
+        "build/uap10.0/lib/win10-x64/PullToRefresh.UWP/PullToRefresh.UWP.xr.xml",
+        "build/uap10.0/lib/win10-x64/PullToRefresh.UWP/Themes/Generic.xbf",
+        "build/uap10.0/lib/win10-x86/PullToRefresh.UWP.pri",
+        "build/uap10.0/lib/win10-x86/PullToRefresh.UWP.winmd",
+        "build/uap10.0/lib/win10-x86/PullToRefresh.UWP/Properties/PullToRefresh.UWP.rd.xml",
+        "build/uap10.0/lib/win10-x86/PullToRefresh.UWP/PullToRefresh.UWP.xr.xml",
+        "build/uap10.0/lib/win10-x86/PullToRefresh.UWP/Themes/Generic.xbf",
+        "build/uap10.0/PullToRefresh.UWP.targets",
+        "package/services/metadata/core-properties/96bd1c3b8eff4e67ad21a399453f644f.psmdcp",
+        "PullToRefresh.UWP.nuspec",
+        "ref/uap10.0/PullToRefresh.UWP.pri",
+        "ref/uap10.0/PullToRefresh.UWP.winmd",
+        "ref/uap10.0/PullToRefresh.UWP/Properties/PullToRefresh.UWP.rd.xml",
+        "ref/uap10.0/PullToRefresh.UWP/PullToRefresh.UWP.xr.xml",
+        "ref/uap10.0/PullToRefresh.UWP/Themes/Generic.xbf"
+      ]
+    },
+    "PullToRefreshListView/1.0.0": {
+      "sha512": "DvK5vJEapjVwuS6tNrkJGvvFfMXS5dUqbShaoaKl+GBUUX3xNCI5SHHk6Ew/1dOlxBljThI6THrf/rKXOq9WIA==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/wpa81/Custom.Controls.PullToRefreshListView.dll",
+        "lib/wpa81/Custom.Controls.PullToRefreshListView.pri",
+        "lib/wpa81/Custom.Controls.PullToRefreshListView/Custom.Controls.PullToRefreshListView.xr.xml",
+        "lib/wpa81/Custom.Controls.PullToRefreshListView/Themes/Generic.xaml",
+        "lib/wpa81/Custom.Controls.PullToRefreshListView/Themes/Generic.xbf",
+        "package/services/metadata/core-properties/d5252246502f4aa59ccc45c49b4f8e74.psmdcp",
+        "PullToRefreshListView.nuspec"
       ]
     },
     "System.AppContext/4.0.0": {
@@ -14912,11 +15051,13 @@
   },
   "projectFileDependencyGroups": {
     "": [
-      "Microsoft.ApplicationInsights >= 1.0.0",
-      "Microsoft.ApplicationInsights.PersistenceChannel >= 1.0.0",
-      "Microsoft.ApplicationInsights.WindowsApps >= 1.0.0",
+      "Microsoft.ApplicationInsights >= 1.2.3",
+      "Microsoft.ApplicationInsights.PersistenceChannel >= 1.2.3",
+      "Microsoft.ApplicationInsights.WindowsApps >= 1.1.1",
       "Microsoft.NETCore.UniversalWindowsPlatform >= 5.0.0",
-      "Newtonsoft.Json >= 8.0.2"
+      "Newtonsoft.Json >= 8.0.2",
+      "PullToRefresh.UWP >= 0.3.3",
+      "PullToRefreshListView >= 1.0.0"
     ],
     "UAP,Version=v10.0": []
   }

@@ -19,7 +19,7 @@
     <PackageCertificateKeyFile>PicLoc_TemporaryKey.pfx</PackageCertificateKeyFile>
     <AppxAutoIncrementPackageRevision>True</AppxAutoIncrementPackageRevision>
     <AppxBundle>Always</AppxBundle>
-    <AppxBundlePlatforms>arm</AppxBundlePlatforms>
+    <AppxBundlePlatforms>x86|x64|arm</AppxBundlePlatforms>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
     <DebugSymbols>true</DebugSymbols>
@@ -98,19 +98,25 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="account.cs" />
+    <Compile Include="add_friend.xaml.cs">
+      <DependentUpon>add_friend.xaml</DependentUpon>
+    </Compile>
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="classes.cs" />
+    <Compile Include="helper.cs" />
     <Compile Include="main.xaml.cs">
       <DependentUpon>main.xaml</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="settings.cs" />
-    <Compile Include="signup.xaml.cs">
-      <DependentUpon>signup.xaml</DependentUpon>
+    <Compile Include="send_snap.xaml.cs">
+      <DependentUpon>send_snap.xaml</DependentUpon>
     </Compile>
-    <Compile Include="snapscreen.xaml.cs">
-      <DependentUpon>snapscreen.xaml</DependentUpon>
+    <Compile Include="settings.cs" />
+    <Compile Include="snap_screen.xaml.cs">
+      <DependentUpon>snap_screen.xaml</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -169,6 +175,7 @@
     <Content Include="Assets\login\images\image %287%29.jpg" />
     <Content Include="Assets\login\images\image %288%29.jpg" />
     <Content Include="Assets\login\images\image %289%29.jpg" />
+    <Content Include="Assets\logo.png" />
     <Content Include="Assets\signup\images\image.jpg" />
     <Content Include="Assets\snapscreen\Images\camera-rotate.png" />
     <Content Include="Assets\snapscreen\Images\camera.png" />
@@ -198,15 +205,19 @@
     </ApplicationDefinition>
   </ItemGroup>
   <ItemGroup>
+    <Page Include="add_friend.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="main.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="signup.xaml">
+    <Page Include="send_snap.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="snapscreen.xaml">
+    <Page Include="snap_screen.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
