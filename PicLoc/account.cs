@@ -5,6 +5,9 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using Windows.UI.Xaml.Controls;
+using Windows.Storage;
+using Newtonsoft.Json.Linq;
+using Windows.Storage.Streams;
 
 namespace PicLoc
 {
@@ -13,12 +16,17 @@ namespace PicLoc
 
         private HttpClient httpClient = new HttpClient();
         private CancellationTokenSource cts = new CancellationTokenSource();
-        private ProgressBar _progressBar;
+        private ProgressBar _progressBar = null;
         helper h = new helper();
 
         private void resetProgressBar()
         {
-            _progressBar.IsIndeterminate = true;
+            //_progressBar.IsIndeterminate = true;
+            if (_progressBar == null)
+            {
+                Debug.WriteLine("***** PROGRESS BAR NULL *******");
+                return;
+            }
             _progressBar.Visibility = Windows.UI.Xaml.Visibility.Collapsed;
         }
 
@@ -28,6 +36,7 @@ namespace PicLoc
             String responseString = null;
 
             _progressBar = progressBar;
+            _progressBar.Visibility = Windows.UI.Xaml.Visibility.Visible;
 
             if (!useToken)
             {
@@ -47,7 +56,6 @@ namespace PicLoc
                 HttpFormUrlEncodedContent formContent = new HttpFormUrlEncodedContent(values);
 
                 IProgress<HttpProgress> progress = new Progress<HttpProgress>(ProgressHandler);
-                _progressBar.Visibility = Windows.UI.Xaml.Visibility.Visible;
                 response = await httpClient.PostAsync(new Uri(settings.API + "/login/"), formContent).AsTask(cts.Token, progress);
                 responseString = await response.Content.ReadAsStringAsync();
                 Debug.WriteLine("login | responseString: " + responseString);
@@ -207,33 +215,275 @@ namespace PicLoc
             return responseString;
         }
 
+        public async Task<String> getFriends(String username, String password, ProgressBar progressBar)
+        {
+            HttpResponseMessage response = null;
+            String responseString = null;
+
+            _progressBar = progressBar;
+            _progressBar.Visibility = Windows.UI.Xaml.Visibility.Visible;
+
+            try
+            {
+                String device_id = h.getDeviceID();
+                var values = new Dictionary<string, string>
+            {
+                { "username", username },
+                { "password", password },
+                { "device_id", device_id }
+            };
+
+                HttpFormUrlEncodedContent formContent = new HttpFormUrlEncodedContent(values);
+
+                IProgress<HttpProgress> progress = new Progress<HttpProgress>(ProgressHandler);
+                response = await httpClient.PostAsync(new Uri(settings.API + "/get_friends/"), formContent).AsTask(cts.Token, progress);
+                responseString = await response.Content.ReadAsStringAsync();
+                Debug.WriteLine("getFriends | responseString: " + responseString);
+            }
+            catch (TaskCanceledException)
+            {
+                Debug.WriteLine("getFriends | Canceled");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("getFriends | Error: " + ex.StackTrace);
+            }
+            finally
+            {
+                Debug.WriteLine("getFriends | Completed");
+                resetProgressBar();
+            }
+
+            return responseString;
+        }
+
+        public async Task<Boolean> getSnap(String username, String password, int snapID, ProgressBar progressBar)
+        {
+            HttpResponseMessage response = null;
+            String responseString = null;
+
+            _progressBar = progressBar;
+            _progressBar.Visibility = Windows.UI.Xaml.Visibility.Visible;
+
+            try
+            {
+                String device_id = h.getDeviceID();
+                var values = new Dictionary<string, string>
+            {
+                    { "username", username },
+                    { "password", password },
+                    { "device_id", device_id },
+                    { "snap_id", snapID.ToString() }
+
+            };
+                Debug.WriteLine("getSnap | user: " + username);
+                Debug.WriteLine("getSnap | pass: " + password);
+                Debug.WriteLine("getSnap | did: " + device_id);
+                Debug.WriteLine("getSnap | snap: " + snapID.ToString());
+
+                HttpFormUrlEncodedContent formContent = new HttpFormUrlEncodedContent(values);
+
+                IProgress<HttpProgress> progress = new Progress<HttpProgress>(ProgressHandler);
+                response = await httpClient.PostAsync(new Uri(settings.API + "/get_snap/"), formContent).AsTask(cts.Token, progress);
+                responseString = await response.Content.ReadAsStringAsync();
+            }
+            catch (TaskCanceledException)
+            {
+                Debug.WriteLine("getSnap | Canceled");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("getSnap | Error: " + ex.StackTrace);
+            }
+            finally
+            {
+                Debug.WriteLine("getSnaps | Completed");
+                resetProgressBar();
+            }
+
+            JObject jo = null;
+
+            if (response.Content.Headers.ContentType.ToString() == "image/png")
+            {
+                Debug.WriteLine("Snap is good");
+
+                try
+                {
+                    StorageFolder image = await h.getImageFolder();
+                    StorageFile file = await image.CreateFileAsync(snapID + ".jpg", CreationCollisionOption.ReplaceExisting);
+                    await FileIO.WriteBufferAsync(file, await response.Content.ReadAsBufferAsync());
+                    return true;
+                }
+                catch (System.Exception ex)
+                {
+                    h.showSingleButtonDialog("Snap download error", "There was an error savind the snap: " + ex.Message, "Close");
+                    return false;
+                }
+            } else
+            {
+                jo = JObject.Parse(responseString);
+                h.showSingleButtonDialog("Server error [" + jo["code"] + "]", ((jo["message"] != null) ? jo["message"].ToString() : "No server message was provided"), "Dismiss");
+                return false;
+            }
+        }
+
+        public async Task<String> sendSnap(String username, String password, ProgressBar progressBar, String userTo, StorageFile file, int time)
+        {
+            HttpResponseMessage response = null;
+            String responseString = null;
+
+            _progressBar = progressBar;
+            _progressBar.Visibility = Windows.UI.Xaml.Visibility.Visible;
+
+            try
+            {
+                IInputStream inputStream = await file.OpenAsync(FileAccessMode.Read);
+
+                String device_id = h.getDeviceID();
+                HttpMultipartFormDataContent multipartContent = new HttpMultipartFormDataContent();
+
+                Debug.WriteLine("sendSnap | File name: " + file.Name);
+
+                multipartContent.Add(
+                    new HttpStreamContent(inputStream),
+                    "snap",
+                    file.Name);
+
+                multipartContent.Add(new HttpStringContent(username), "username");
+                multipartContent.Add(new HttpStringContent(password), "password");
+                multipartContent.Add(new HttpStringContent(h.getDeviceID()), "device_id");
+                multipartContent.Add(new HttpStringContent(userTo), "send_snap_to");
+                multipartContent.Add(new HttpStringContent(time.ToString()), "send_snap_time");
+
+                IProgress<HttpProgress> progress = new Progress<HttpProgress>(ProgressHandler);
+                response = await httpClient.PostAsync(new Uri(settings.API + "/send_snap/"), multipartContent).AsTask(cts.Token, progress);
+                responseString = await response.Content.ReadAsStringAsync();
+                Debug.WriteLine("sendSnap | responseString: " + responseString);
+            }
+            catch (TaskCanceledException)
+            {
+                Debug.WriteLine("sendSnap | Canceled");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("sendSnap | Error: " + ex.StackTrace);
+            }
+            finally
+            {
+                Debug.WriteLine("sendSnap | Completed");
+                resetProgressBar();
+            }
+
+            return responseString;
+        }
+
+        public async Task<String> addFriend(String username, String password, ProgressBar progressBar, String userToAdd)
+        {
+            HttpResponseMessage response = null;
+            String responseString = null;
+
+            _progressBar = progressBar;
+
+            try
+            {
+                String device_id = h.getDeviceID();
+                var values = new Dictionary<string, string>
+            {
+                    { "username", username },
+                    { "password", password },
+                    { "device_id", device_id },
+                    { "friend", userToAdd }
+            };
+
+                HttpFormUrlEncodedContent formContent = new HttpFormUrlEncodedContent(values);
+
+                IProgress<HttpProgress> progress = new Progress<HttpProgress>(ProgressHandler);
+                _progressBar.Visibility = Windows.UI.Xaml.Visibility.Visible;
+                response = await httpClient.PostAsync(new Uri(settings.API + "/add_friend/"), formContent).AsTask(cts.Token, progress);
+                responseString = await response.Content.ReadAsStringAsync();
+                Debug.WriteLine("addFriend | responseString: " + responseString);
+            }
+            catch (TaskCanceledException)
+            {
+                Debug.WriteLine("addFriend | Canceled");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("addFriend | Error: " + ex.StackTrace);
+            }
+            finally
+            {
+                Debug.WriteLine("addFriend | Completed");
+                resetProgressBar();
+            }
+
+            return responseString;
+        }
+
+        public async Task<String> acceptFriend(String username, String password, ProgressBar progressBar, String friend)
+        {
+            HttpResponseMessage response = null;
+            String responseString = null;
+
+            _progressBar = progressBar;
+
+            try
+            {
+                String device_id = h.getDeviceID();
+                var values = new Dictionary<string, string>
+            {
+                    { "username", username },
+                    { "password", password },
+                    { "device_id", device_id },
+                    { "friend", friend }
+            };
+
+                HttpFormUrlEncodedContent formContent = new HttpFormUrlEncodedContent(values);
+
+                IProgress<HttpProgress> progress = new Progress<HttpProgress>(ProgressHandler);
+                _progressBar.Visibility = Windows.UI.Xaml.Visibility.Visible;
+                response = await httpClient.PostAsync(new Uri(settings.API + "/accept_friend/"), formContent).AsTask(cts.Token, progress);
+                responseString = await response.Content.ReadAsStringAsync();
+                Debug.WriteLine("acceptFriend | responseString: " + responseString);
+            }
+            catch (TaskCanceledException)
+            {
+                Debug.WriteLine("acceptFriend | Canceled");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("acceptFriend | Error: " + ex.StackTrace);
+            }
+            finally
+            {
+                Debug.WriteLine("acceptFriend | Completed");
+                resetProgressBar();
+            }
+
+            return responseString;
+        }
+
         private void ProgressHandler(HttpProgress progress)
         {
-            //Debug.WriteLine("Stage: " + progress.Stage.ToString());
-            //Debug.WriteLine("Retires: " + progress.Retries.ToString(CultureInfo.InvariantCulture));
-            //Debug.WriteLine("Bytes Sent: " + progress.BytesSent.ToString(CultureInfo.InvariantCulture));
-            //Debug.WriteLine("Bytes Received: " + progress.BytesReceived.ToString(CultureInfo.InvariantCulture));
+            /* For some reason, the progress is so messed up and I have no clue why. Theoretically this should work, but it doesn't.
+            The progress bar doesn't even show up and the value doesn't get set
+            */
+
+            // Debug.WriteLine("Stage: " + progress.Stage.ToString());
+            // Debug.WriteLine("Retires: " + progress.Retries.ToString());
+            // Debug.WriteLine("Bytes Sent: " + progress.BytesSent.ToString());
+            // Debug.WriteLine("Bytes Received: " + progress.BytesReceived.ToString());
 
             ulong totalBytesToSend = 0;
             if (progress.TotalBytesToSend.HasValue)
             {
                 totalBytesToSend = progress.TotalBytesToSend.Value;
-                //Debug.WriteLine("Total Bytes To Send: " + totalBytesToSend.ToString(CultureInfo.InvariantCulture));
-            }
-            else
-            {
-                //Debug.WriteLine("Total Bytes To Send: " + "unknown");
             }
 
             ulong totalBytesToReceive = 0;
             if (progress.TotalBytesToReceive.HasValue)
             {
                 totalBytesToReceive = progress.TotalBytesToReceive.Value;
-                //Debug.WriteLine("Total Bytes To Receive: " + totalBytesToReceive.ToString(CultureInfo.InvariantCulture));
-            }
-            else
-            {
-                //Debug.WriteLine("Total Bytes To Receive: " + "unknown");
             }
 
             double requestProgress = 0;
@@ -243,9 +493,7 @@ namespace PicLoc
             }
             else if (progress.Stage == HttpProgressStage.ReceivingContent)
             {
-                // Start with 50 percent, request content was already sent.
                 requestProgress += 50;
-
                 if (totalBytesToReceive > 0)
                 {
                     requestProgress += progress.BytesReceived * 50 / totalBytesToReceive;
@@ -256,26 +504,29 @@ namespace PicLoc
                 return;
             }
 
+            Debug.WriteLine(requestProgress.ToString());
+
             if (_progressBar != null)
             {
+                Debug.WriteLine("not null");
                 if (requestProgress != 0)
                 {
+                    Debug.WriteLine("progress not 0");
                     _progressBar.IsIndeterminate = false;
                     _progressBar.Value = requestProgress;
                     if (requestProgress == 100)
                     {
-                        _progressBar.Visibility = Windows.UI.Xaml.Visibility.Collapsed;
+                        Debug.WriteLine("100% reset");
+                        resetProgressBar();
                     }
+                    Debug.WriteLine("done");
                 } else
                 {
-                    _progressBar.IsIndeterminate = true;
+                    Debug.WriteLine("Else reset");
+                    resetProgressBar();
                 }
             }
-
-            Debug.WriteLine("Progress: " + requestProgress);
-            //snap_progress.Value = requestProgress;
         }
     }
-
 }
 
