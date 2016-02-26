@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -7,6 +8,7 @@ using Windows.Security.Credentials;
 using Windows.Security.Cryptography;
 using Windows.Security.Cryptography.Core;
 using Windows.Security.ExchangeActiveSyncProvisioning;
+using Windows.Storage;
 using Windows.Storage.Streams;
 using Windows.System.Profile;
 using Windows.UI.Popups;
@@ -21,6 +23,31 @@ namespace PicLoc
             if (Windows.Foundation.Metadata.ApiInformation.IsTypePresent("Windows.UI.ViewManagement.StatusBar"))
             {
                 var i = Windows.UI.ViewManagement.StatusBar.GetForCurrentView().HideAsync();
+            }
+        }
+
+        public async Task<StorageFolder> getImageFolder()
+        {
+            try
+            {
+                StorageFolder folder = await ApplicationData.Current.LocalFolder.GetFolderAsync("images");
+            }
+            catch (FileNotFoundException)
+            {
+                StorageFolder new_images = await ApplicationData.Current.LocalFolder.CreateFolderAsync("images", CreationCollisionOption.ReplaceExisting);
+            }
+            return await ApplicationData.Current.LocalFolder.GetFolderAsync("images");
+        }
+
+        public async void createImageFolder()
+        {
+            try
+            {
+                StorageFolder folder = await ApplicationData.Current.LocalFolder.GetFolderAsync("images");
+            }
+            catch (FileNotFoundException)
+            {
+                StorageFolder new_images = await ApplicationData.Current.LocalFolder.CreateFolderAsync("images", CreationCollisionOption.ReplaceExisting);
             }
         }
 
@@ -70,6 +97,98 @@ namespace PicLoc
             catch (Exception)
             {
                 return "";
+            }
+        }
+
+        public string getAutoLogin()
+        {
+            var vault = new PasswordVault();
+            try
+            {
+                PasswordCredential cred = vault.Retrieve("PicLoc", "auto_login");
+                if (cred != null)
+                {
+                    return cred.Password;
+                }
+                else
+                {
+                    return "";
+                }
+            }
+            catch (Exception)
+            {
+                return "";
+            }
+        }
+
+        public Boolean setAutoLogin(String username)
+        {
+            try {
+                var vault = new PasswordVault();
+                var cred = new PasswordCredential("PicLoc", "auto_login", username);
+                vault.Add(cred);
+                return true;
+            } catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        public Boolean clearAutoLogin()
+        {
+            var vault = new PasswordVault();
+            try
+            {
+                PasswordCredential cred = vault.Retrieve("PicLoc", "auto_login");
+                if (cred != null)
+                {
+                    vault.Remove(cred);
+                    return true;
+                }
+                else
+                {
+                    return true;
+                }
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        public string getPasswordFromUsername(String username)
+        {
+            var vault = new PasswordVault();
+            try
+            {
+                PasswordCredential cred = vault.Retrieve("PicLoc_accounts", username);
+                if (cred != null)
+                {
+                    return cred.Password;
+                }
+                else
+                {
+                    return "";
+                }
+            }
+            catch (Exception)
+            {
+                return "";
+            }
+        }
+
+        public Boolean setUsernamePassword(String username, String password)
+        {
+            try
+            {
+                var vault = new PasswordVault();
+                var cred = new PasswordCredential("PicLoc_accounts", username, password);
+                vault.Add(cred);
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
             }
         }
 
@@ -146,6 +265,26 @@ namespace PicLoc
             dialog.Title = title;
             dialog.Commands.Add(new UICommand(buttonOne, null, "1"));
             var show_dialog = await dialog.ShowAsync();
+        }
+
+        public async Task<int> showDialog2Buttons(String title, String message, String buttonOne, String buttonTwo)
+        {
+            var dialog = new MessageDialog(message);
+            dialog.Title = title;
+            dialog.Commands.Add(new UICommand(buttonOne, null, "1"));
+            dialog.Commands.Add(new UICommand(buttonTwo, null, "2"));
+            var show_dialog = await dialog.ShowAsync();
+
+            if (show_dialog.Label == buttonOne)
+            {
+                return 1;
+            } else if (show_dialog.Label == buttonTwo)
+            {
+                return 2;
+            } else
+            {
+                return 0;
+            }
         }
 
     }
